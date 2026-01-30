@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { setCookie } from 'nookies';
 import { authService } from '../service/auth-service';
-
+import { Lock, User } from 'lucide-react';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -35,51 +35,68 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-[#161b22] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-      <div className="bg-linear-to-r from-[#7609e8] to-[#316ef3] p-8 text-center">
-        <h1 className="text-3xl font-bold text-white tracking-tight">SMP System</h1>
-        <p className="text-white/80 mt-2 text-sm">Industrial IoT Management</p>
+    <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
+      
+      <div className="bg-linear-to-r from-[#7609e8] to-[#316ef3] p-10 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-white/10 skew-y-12 transform -translate-y-1/2"></div>
+        
+        <h1 className="text-3xl font-extrabold text-white tracking-tight relative z-10">SMP System</h1>
+        <p className="text-blue-100 mt-2 text-sm relative z-10 font-medium">Industrial IoT Management</p>
       </div>
 
       <form onSubmit={handleLogin} className="p-8 space-y-6">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 p-4 rounded text-red-400 text-sm text-center">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-lg flex items-center justify-center">
+             <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p>
           </div>
         )}
 
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Usuário</label>
-          <input 
-            type="text"
-            required
-            placeholder="Operador ou Admin"
-            className="w-full p-3 bg-[#0f111a] border border-gray-700 rounded-lg focus:ring-2 focus:ring-[#316ef3] focus:border-transparent outline-none transition-all text-white placeholder-gray-600"
-            onChange={e => setUsername(e.target.value)}
-          />
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Usuário</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <User size={18} />
+            </div>
+            <input 
+              type="text"
+              required
+              placeholder="Seu username"
+              className="w-full pl-10 pr-4 py-3 bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-xl focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-foreground placeholder-muted-foreground"
+              onChange={e => setUsername(e.target.value)}
+            />
+          </div>
         </div>
-
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Senha</label>
-          <input 
-            type="password"
-            required
-            placeholder="••••••••"
-            className="w-full p-3 bg-[#0f111a] border border-gray-700 rounded-lg focus:ring-2 focus:ring-[#316ef3] focus:border-transparent outline-none transition-all text-white placeholder-gray-600"
-            onChange={e => setPassword(e.target.value)}
-          />
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Senha</label>
+          <div className="relative">
+             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Lock size={18} />
+            </div>
+            <input 
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full pl-10 pr-4 py-3 bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-xl focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-foreground placeholder-muted-foreground"
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
         </div>
 
         <button 
           type="submit"
           disabled={isLoading}
-          className="w-full bg-linear-to-r from-[#7609e8] to-[#316ef3] text-white py-3 rounded-lg font-bold hover:brightness-110 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-linear-to-r from-[#7609e8] to-[#316ef3] text-white py-3.5 rounded-xl font-bold hover:opacity-90 hover:scale-[1.02] transition-all shadow-lg shadow-blue-500/25 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Conectando...' : 'ACESSAR PLATAFORMA'}
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> 
+              Acessando...
+            </span>
+          ) : 'ACESSAR PLATAFORMA'}
         </button>
 
-        <div className="text-center pt-2">
-          <span className="text-xs text-gray-600">v4.0.2 - Secure Connection</span>
+        <div className="text-center pt-2 border-t border-border mt-6">
+          <span className="text-xs text-muted-foreground">v4.0.2 • Conexão Segura</span>
         </div>
       </form>
     </div>

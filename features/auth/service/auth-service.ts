@@ -9,5 +9,6 @@ export const authService = {
   },  
   logout: () => {
     destroyCookie(undefined, 'smp.token', { path: '/' });
+    window.location.href = '/login';
   }
 };
