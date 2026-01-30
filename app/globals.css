@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
+/* 1. Definição do Tema CLARO (Padrão/Default) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Branding (Cores da Marca - Fixas) */
+  --brand-purple: #7609e8;
+  --brand-blue: #316ef3;
+
+  /* Cores Base - LIGHT MODE (Clean / Branco) */
+  --background: #ffffff;         /* Fundo branco puro */
+  --foreground: #0f172a;         /* Texto escuro (Slate 900) - melhor que preto puro */
+  
+  /* Cards e Elementos de UI */
+  --card-bg: #ffffff;            /* Card branco */
+  --card-border: #e2e8f0;        /* Borda cinza suave (Slate 200) */
+  --muted: #f1f5f9;              /* Cinza bem claro para fundos secundários */
+  --muted-foreground: #64748b;   /* Texto secundário (Slate 500) */
+
+  /* Padrão do Grid (Bolinhas) */
+  --grid-color: rgba(0, 0, 0, 0.05); /* Bolinhas pretas bem suaves */
 }
 
+/* 2. Definição do Tema ESCURO (Dark Mode) */
+/* Quando a classe .dark é adicionada no <html> ou <body> */
+.dark {
+  /* Cores Base - DARK MODE (Industrial / Tech) */
+  --background: #0f111a;         /* Aquele fundo azul-escuro profundo */
+  --foreground: #ffffff;         /* Texto branco */
+
+  /* Cards e Elementos de UI */
+  --card-bg: #161b22;            /* Card cinza/azul escuro */
+  --card-border: #1f2937;        /* Borda escura */
+  --muted: #0d1117;              /* Fundo secundário escuro */
+  --muted-foreground: #94a3b8;   /* Texto secundário cinza claro */
+
+  /* Padrão do Grid (Bolinhas) */
+  --grid-color: rgba(255, 255, 255, 0.05); /* Bolinhas brancas suaves */
+}
+
+/* 3. Mapeamento para o Tailwind v4 */
 @theme inline {
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-blue: var(--brand-blue);
+  
+  /* Mapeamos as variáveis semânticas */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card-bg);
+  --color-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --background-image-brand-gradient: linear-gradient(to right, var(--brand-purple), var(--brand-blue));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 4. Estilos Globais */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Transição suave ao trocar tema */
+}
+
+/* Classe utilitária para o Grid de fundo */
+.bg-grid {
+  /* Usa a variável --grid-color que muda sozinha entre light/dark */
+  background-image: radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0);
+  background-size: 24px 24px;
 }
