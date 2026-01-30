@@ -30,3 +30,10 @@ export interface DeviceDetails {
     processStatus: string;
     order?: string;
 }
+
+export interface UpdateDeviceDTO {
+  name?: string;
+  processStage?: string;
+  processStatus?: string;
+  order?: string;
+}
