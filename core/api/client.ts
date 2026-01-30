@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { parseCookies } from 'nookies';
+import { destroyCookie, parseCookies } from 'nookies';
 import { env } from '../config/env';
 
 export const api = axios.create({
@@ -21,13 +21,17 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      destroyCookie(undefined, 'smp.token', { path: '/' });
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
     }
+
     return Promise.reject(error);
   }
 );
