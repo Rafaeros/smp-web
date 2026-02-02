@@ -5,7 +5,9 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('smp.token')?.value;
   const { pathname } = request.nextUrl;
 
-  if (!token && pathname !== '/login') {
+  const publicRoutes = ['/login', '/']; 
+
+  if (!token && !publicRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -18,6 +20,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (images, svgs, etc if inside public folder)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
   ],
 };

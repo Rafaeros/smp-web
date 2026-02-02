@@ -1,15 +1,9 @@
 import { api } from "@/core/api/client";
-import { DeviceDetails, UpdateDeviceDTO } from "../types";
-
+import { AvailableDevice } from "@/features/userdevices/types";
 
 export const deviceService = {
-    getById: async (id: number): Promise<DeviceDetails> => {
-        const { data } = await api.get<DeviceDetails>(`/devices/${id}`);
-        return data;
-    },
-
-    update: async (id: number, dto: UpdateDeviceDTO): Promise<DeviceDetails> => {
-        const { data } = await api.patch<DeviceDetails>(`/devices/${id}`, dto);
-        return data;
-    }
-}
+  getAvailableDevices: async (): Promise<AvailableDevice[]> => {
+    const { data } = await api.get<AvailableDevice[]>("/devices/available");
+    return data;
+  },
+};

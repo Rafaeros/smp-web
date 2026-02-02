@@ -1,14 +1,4 @@
-
-export enum DeviceStatus {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE'
-}
-
-export interface AvailableDevice {
-  id: number;
-  macAddress: string;
-  ipAddress: string;
-}
+import { DeviceStatus, ProcessStage, ProcessStatus } from "@/features/devices/types";
 
 export interface DeviceBindingDTO {
   id: number;
@@ -17,13 +7,30 @@ export interface DeviceBindingDTO {
   coordinateY: number;
 }
 
-export interface UserDevice {
-  deviceId: number;
+export interface UserDeviceMap {
+  id: number;
+  name: string;
+  macAddress: string;
+  x: number;
+  y: number;
+  status: DeviceStatus;
+}
+
+export interface UserDeviceDetails {
+  id: number;
   name: string;
   macAddress: string;
   ipAddress: string;
+  status: DeviceStatus;
+  process: ProcessStatus;
+  stage: ProcessStage;
   lastSeen: string;
   coordinateX: number;
   coordinateY: number;
-  status: DeviceStatus;
+}
+
+export interface UpdateUserDeviceDTO {
+  name?: string;
+  stage?: ProcessStage;
+  order?: string;
 }

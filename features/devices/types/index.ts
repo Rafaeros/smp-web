@@ -19,6 +19,13 @@ export enum ProcessStatus {
     PAUSED = 'PAUSADO',
 }
 
+export interface AvailableDevice {
+  id: number;
+  macAddress: string;
+  ipAddress: string;
+}
+
+
 export interface DeviceDetails {
     id: number;
     name: string;
@@ -29,11 +36,4 @@ export interface DeviceDetails {
     processStage: string;
     processStatus: string;
     order?: string;
-}
-
-export interface UpdateDeviceDTO {
-  name?: string;
-  processStage?: string;
-  processStatus?: string;
-  order?: string;
 }

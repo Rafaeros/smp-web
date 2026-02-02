@@ -27,8 +27,12 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       destroyCookie(undefined, 'smp.token', { path: '/' });
+      
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/' && currentPath !== '/login') {
+             window.location.href = '/login';
+        }
       }
     }
 
