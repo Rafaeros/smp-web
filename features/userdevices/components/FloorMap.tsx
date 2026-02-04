@@ -68,6 +68,7 @@ export function FloorMap() {
         coordinateY: clickPos.y,
       });
       setDevices((prev) => [...prev, newDevice]);
+      await loadMapData();
       setModalOpen(false);
     } catch (error) {
       alert("Erro ao vincular dispositivo.");
