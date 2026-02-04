@@ -8,7 +8,7 @@ export const clientService = {
     return data;
   },
 
-  getAll: async (page = 0, size = 10): Promise<Page<Client>> => {
+  getAll: async (page = 0, size = 10, name = ""): Promise<Page<Client>> => {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString()

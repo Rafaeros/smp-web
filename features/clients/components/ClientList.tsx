@@ -1,37 +1,42 @@
 "use client";
 
 import { InfiniteScrollContainer } from "@/core/components/shared/InfiniteScrollContainer";
-import { SearchInput } from "@/core/components/shared/SearchInput";
 import {
   CheckSquare,
   Edit,
   Eye,
-  MoreHorizontal,
   Plus,
   Square,
   Trash2,
-  Users,
+  Users
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clientService } from "../services/clients.service";
 import { Client } from "../types/client";
+import { ClientListFilters } from "./ClientListFilter";
 
-export default function ClientsList() {
+export default function ClientsPage() {
   const router = useRouter();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  // Estado para armazenar os filtros complexos
+  const [activeFilters, setActiveFilters] = useState<any>({});
 
   const fetchClients = async (isNewSearch = false) => {
     setLoading(true);
     try {
       const currentPage = isNewSearch ? 0 : page;
-      const data = await clientService.getAll(currentPage, 10);
+      const data = await clientService.getAll(
+        currentPage,
+        10,
+        activeFilters.name || "",
+      );
 
       setClients((prev) => {
         if (currentPage === 0) return data.content;
@@ -50,8 +55,9 @@ export default function ClientsList() {
   useEffect(() => {
     fetchClients(true);
     setSelectedIds(new Set());
-  }, [searchTerm]);
+  }, [activeFilters]);
 
+  // Infinite Scroll
   useEffect(() => {
     if (page > 0) fetchClients(false);
   }, [page]);
@@ -66,10 +72,7 @@ export default function ClientsList() {
   };
 
   const handleBulkDelete = () => {
-    if (
-      confirm(`Tem certeza que deseja remover ${selectedIds.size} clientes?`)
-    ) {
-      // clientService.deleteBatch(Array.from(selectedIds))...
+    if (confirm(`Excluir ${selectedIds.size} clientes selecionados?`)) {
       setClients((prev) => prev.filter((c) => !selectedIds.has(c.id)));
       setSelectedIds(new Set());
     }
@@ -92,42 +95,31 @@ export default function ClientsList() {
               </p>
             </div>
           </div>
-
-          <div className="flex gap-3 h-12">
-            {selectedIds.size > 0 ? (
-              <div className="flex-1 flex items-center justify-between bg-brand-purple/5 border border-brand-purple/20 rounded-xl px-4 animate-in fade-in slide-in-from-top-2">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center justify-center w-6 h-6 bg-brand-purple text-white text-xs font-bold rounded-full">
-                    {selectedIds.size}
+          <div className="flex gap-3 h-10 items-center justify-between">
+            <ClientListFilters onFilter={setActiveFilters} />
+            <div className="flex gap-3">
+              {selectedIds.size > 0 ? (
+                <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {selectedIds.size} selecionado(s)
                   </span>
-                  <span className="text-sm font-medium text-brand-purple">
-                    selecionados
-                  </span>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 px-3 py-2 rounded-lg text-xs font-bold transition-colors"
+                  >
+                    <Trash2 size={14} /> EXCLUIR
+                  </button>
                 </div>
-                <button
-                  onClick={handleBulkDelete}
-                  className="flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium"
-                >
-                  <Trash2 size={16} />{" "}
-                  <span className="hidden sm:inline">Excluir</span>
-                </button>
-              </div>
-            ) : (
-              <>
-                <SearchInput
-                  onSearch={setSearchTerm}
-                  placeholder="Buscar por nome..."
-                />
-
+              ) : (
                 <button
                   onClick={() => router.push("/clients/new")}
-                  className="bg-linear-to-r from-brand-purple to-brand-blue text-white font-semibold px-5 rounded-xl hover:shadow-lg hover:shadow-brand-purple/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                  className="bg-brand-purple text-white font-semibold px-4 py-2 rounded-lg hover:shadow-lg hover:bg-brand-purple/90 active:scale-95 transition-all flex items-center gap-2 text-sm"
                 >
-                  <Plus size={18} strokeWidth={2.5} />
-                  <span className="hidden sm:inline">Novo Cliente</span>
+                  <Plus size={16} strokeWidth={3} />
+                  <span>Novo</span>
                 </button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -137,11 +129,7 @@ export default function ClientsList() {
           loading={loading}
           hasMore={hasMore}
           onLoadMore={loadMore}
-          emptyMessage={
-            searchTerm
-              ? "Nenhum cliente encontrado para essa busca."
-              : "Nenhum cliente cadastrado."
-          }
+          emptyMessage="Nenhum cliente encontrado com estes filtros."
         >
           {clients.map((client) => {
             const isSelected = selectedIds.has(client.id);
@@ -149,33 +137,34 @@ export default function ClientsList() {
             return (
               <div
                 key={client.id}
+                // LOGICA MUDADA: Clicar no card seleciona a linha inteira
+                onClick={() => toggleSelect(client.id)}
                 className={`
-                  group relative flex items-center p-4 rounded-xl border transition-all duration-200
+                  group relative flex items-center p-4 rounded-xl border transition-all duration-200 cursor-pointer select-none
                   ${
                     isSelected
-                      ? "bg-brand-purple/5 border-brand-purple/30 shadow-[0_0_0_1px_rgba(118,9,232,0.1)]"
-                      : "bg-card border-border hover:border-brand-purple/30 hover:shadow-md hover:-translate-y-0.5"
+                      ? "bg-brand-purple/5 border-brand-purple/50 shadow-[0_0_0_1px_rgba(118,9,232,0.2)]"
+                      : "bg-card border-border hover:border-brand-purple/30 hover:shadow-md"
                   }
                 `}
               >
-                <div
-                  className="pr-4 cursor-pointer text-muted-foreground hover:text-brand-purple transition-colors"
-                  onClick={() => toggleSelect(client.id)}
-                >
+                {/* Checkbox Visual */}
+                <div className="pr-4 text-muted-foreground">
                   {isSelected ? (
                     <CheckSquare
-                      size={22}
+                      size={20}
                       className="text-brand-purple fill-brand-purple/10"
                     />
                   ) : (
-                    <Square size={22} />
+                    <Square
+                      size={20}
+                      className="group-hover:text-brand-purple/50"
+                    />
                   )}
                 </div>
 
-                <div
-                  className="flex-1 min-w-0 cursor-pointer"
-                  onClick={() => router.push(`/clients/${client.id}`)}
-                >
+                {/* Conteúdo */}
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <h3
                       className={`font-bold truncate text-base ${
@@ -184,8 +173,9 @@ export default function ClientsList() {
                     >
                       {client.name}
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                      ATIVO
+                    {/* Exemplo de Badge de Status vindo do filtro */}
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border border-border">
+                      {client.id % 2 === 0 ? "ATIVO" : "PENDENTE"}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground font-mono flex gap-3">
@@ -193,21 +183,27 @@ export default function ClientsList() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity pl-2">
-                  <ActionButton
-                    icon={Eye}
-                    onClick={() => router.push(`/clients/${client.id}`)}
-                    tooltip="Ver Detalhes"
-                  />
-                  <ActionButton
-                    icon={Edit}
-                    onClick={() => router.push(`/clients/${client.id}/edit`)}
-                    color="text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                    tooltip="Editar"
-                  />
-
-                  <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
-                    <MoreHorizontal size={18} />
+                {/* Ações Explícitas de Navegação (Sem Delete) */}
+                <div className="flex items-center gap-2 pl-4 border-l border-border/50 ml-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/clients/${client.id}`);
+                    }}
+                    className="p-2 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors flex flex-col items-center gap-1"
+                    title="Visualizar Detalhes"
+                  >
+                    <Eye size={18} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/clients/${client.id}/edit`);
+                    }}
+                    className="p-2 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    title="Editar Cadastro"
+                  >
+                    <Edit size={18} />
                   </button>
                 </div>
               </div>
@@ -216,24 +212,5 @@ export default function ClientsList() {
         </InfiniteScrollContainer>
       </div>
     </div>
-  );
-}
-
-// Pequeno Helper para botões de ação (Local ou em components/shared)
-function ActionButton({ icon: Icon, onClick, color, tooltip }: any) {
-  return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      title={tooltip}
-      className={`p-2 rounded-full transition-colors ${
-        color ||
-        "text-muted-foreground hover:text-brand-blue hover:bg-blue-50 dark:hover:bg-blue-900/20"
-      }`}
-    >
-      <Icon size={18} />
-    </button>
   );
 }
