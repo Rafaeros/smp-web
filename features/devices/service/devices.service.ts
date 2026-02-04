@@ -1,5 +1,5 @@
 import { api } from "@/core/api/client";
-import { AvailableDevice } from "@/features/userdevices/types";
+import { AvailableDevice } from "../types";
 
 export const deviceService = {
   getAvailableDevices: async (): Promise<AvailableDevice[]> => {
