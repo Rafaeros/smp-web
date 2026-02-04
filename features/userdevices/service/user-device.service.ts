@@ -18,7 +18,7 @@ export const userDeviceService = {
   },
 
   update: async (id: number, dto: UpdateUserDeviceDTO): Promise<UserDeviceDetails> => {
-    const { data } = await api.put<UserDeviceDetails>(`/user-devices/${id}`, dto);
+    const { data } = await api.patch<UserDeviceDetails>(`/user-devices/${id}`, dto);
     return data;
   },
 
