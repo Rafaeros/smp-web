@@ -17,6 +17,7 @@ const menuItems = [
   { name: "Mapa Produção", icon: Map, href: "/dashboard/map" },
   { name: "Ordem de Produção", icon: ClipboardList, href: "/dashboard/orders" },
   { name: "Clientes", icon: UserRoundSearch, href: "/dashboard/clients" },
+  { name: "Produtos", icon: ClipboardList, href: "/dashboard/products" },
   { name: "Logs", icon: History, href: "/dashboard/logs" },
 ];
 
