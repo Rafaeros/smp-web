@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Map,
+  UserRoundSearch,
   ClipboardList,
   History,
   LogOut,
@@ -15,6 +16,7 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Mapa Produção", icon: Map, href: "/dashboard/map" },
   { name: "Ordem de Produção", icon: ClipboardList, href: "/dashboard/orders" },
+  { name: "Clientes", icon: UserRoundSearch, href: "/dashboard/clients" },
   { name: "Logs", icon: History, href: "/dashboard/logs" },
 ];
 
