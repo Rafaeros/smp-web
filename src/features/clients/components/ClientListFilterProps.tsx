@@ -60,17 +60,14 @@ export function ClientListFilters({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="
-    /* Estilos Base */
+          <div
+            className="
     bg-card border border-border rounded-xl shadow-2xl p-5 z-20 
     animate-in fade-in zoom-in-95 slide-in-from-top-2
-
-    /* MOBILE: Fixo e largura total com margem */
     fixed left-4 right-4 top-24 w-auto
-
-    /* DESKTOP (md): Absoluto, largura fixa e alinhado à direita */
     md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-80
-">
+"
+          >
             <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
                 <Search size={14} className="text-brand-purple" />
