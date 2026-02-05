@@ -1,4 +1,4 @@
-import ClientsList from "@/features/clients/components/ClientList";
+import ClientsList from "@/src/features/clients/components/ClientList";
 
 
 export default function ClientsPage() {

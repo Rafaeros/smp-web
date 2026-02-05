@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import { dashboardService } from "@/features/dashboard/service/dashboard.service";
-import { DashboardSummary } from "@/features/dashboard/types";
-import { KpiCard } from "@/features/dashboard/components/KpiCard";
-import { RecentLogs } from "@/features/dashboard/components/RecentLogs";
+import { dashboardService } from "@/src/features/dashboard/service/dashboard.service";
+import { DashboardSummary } from "@/src/features/dashboard/types";
+import { KpiCard } from "@/src/features/dashboard/components/KpiCard";
+import { RecentLogs } from "@/src/features/dashboard/components/RecentLogs";
 import { Activity } from "lucide-react";
 
 export default function DashboardPage() {

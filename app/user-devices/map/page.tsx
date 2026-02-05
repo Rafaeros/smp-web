@@ -1,4 +1,4 @@
-import { FloorMap } from "@/features/userdevices/components/FloorMap";
+import { FloorMap } from "@/src/features/userdevices/components/FloorMap";
 
 
 export default function MapPage() {

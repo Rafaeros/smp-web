@@ -1,6 +1,6 @@
 import { Sidebar } from "@/src/features/navigation/components/Sidebar";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function ClientsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans transition-colors duration-300">
       <Sidebar />

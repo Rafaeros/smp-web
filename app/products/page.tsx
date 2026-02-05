@@ -1,4 +1,4 @@
-import ProductsList from "@/features/products/components/ProductList";
+import ProductsList from "@/src/features/products/components/ProductList";
 
 export default function ProductsPage() {
   return (

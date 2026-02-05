@@ -19,13 +19,13 @@ import {
   DeviceStatus,
   ProcessStage,
   ProcessStatus,
-} from "@/features/devices/types";
+} from "@/src/features/devices/types";
 
-import { userDeviceService } from "@/features/userdevices/service/user-device.service";
+import { userDeviceService } from "@/src/features/userdevices/service/user-device.service";
 import {
   UpdateUserDeviceDTO,
   UserDeviceDetails,
-} from "@/features/userdevices/types";
+} from "@/src/features/userdevices/types";
 
 const statusConfig = {
   RUNNING: {
