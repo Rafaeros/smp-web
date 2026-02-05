@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { setCookie } from 'nookies';
 import { authService } from '../service/auth-service';
 import { Lock, User } from 'lucide-react';
+import Image from 'next/image';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -39,9 +40,8 @@ export function LoginForm() {
       
       <div className="bg-linear-to-r from-[#7609e8] to-[#316ef3] p-10 text-center relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-white/10 skew-y-12 transform -translate-y-1/2"></div>
-        
-        <h1 className="text-3xl font-extrabold text-white tracking-tight relative z-10">SMP System</h1>
-        <p className="text-blue-100 mt-2 text-sm relative z-10 font-medium">Industrial IoT Management</p>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight relative z-10">SMP</h1>
+        <p className="text-blue-100 mt-2 text-sm relative z-10 font-medium">IOT INDUSTRIAL</p>
       </div>
 
       <form onSubmit={handleLogin} className="p-8 space-y-6">
@@ -96,7 +96,7 @@ export function LoginForm() {
         </button>
 
         <div className="text-center pt-2 border-t border-border mt-6">
-          <span className="text-xs text-muted-foreground">v4.0.2 • Conexão Segura</span>
+          <span className="text-xs text-muted-foreground">v1.0.0 • Conexão Segura</span>
         </div>
       </form>
     </div>

@@ -1,22 +1,21 @@
 "use client";
 
-import { Filter, Search, X } from "lucide-react";
+import { Filter, Search, User, X } from "lucide-react";
 import { useState } from "react";
-import { ProductFilters } from "../services/product.service";
+import { ClientFilters } from "../services/client.service"; // Assumindo que você criou o service na etapa anterior
 
-interface ProductListFiltersProps {
-  onFilter: (filters: ProductFilters) => void;
+interface ClientListFiltersProps {
+  onFilter: (filters: ClientFilters) => void;
   activeFiltersCount: number;
 }
 
-export function ProductListFilters({
+export function ClientListFilters({
   onFilter,
   activeFiltersCount,
-}: ProductListFiltersProps) {
+}: ClientListFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [localFilters, setLocalFilters] = useState<ProductFilters>({
-    code: "",
-    description: "",
+  const [localFilters, setLocalFilters] = useState<ClientFilters>({
+    name: "",
   });
 
   const handleApply = (e: React.FormEvent) => {
@@ -26,7 +25,7 @@ export function ProductListFilters({
   };
 
   const handleClear = () => {
-    const cleanState = { code: "", description: "" };
+    const cleanState = { name: "", email: "", document: "" };
     setLocalFilters(cleanState);
     onFilter(cleanState);
     setIsOpen(false);
@@ -53,6 +52,7 @@ export function ProductListFilters({
           </span>
         )}
       </button>
+
       {isOpen && (
         <>
           <div
@@ -60,18 +60,21 @@ export function ProductListFilters({
             onClick={() => setIsOpen(false)}
           />
 
-          <div
-            className="
+          <div className="
+    /* Estilos Base */
     bg-card border border-border rounded-xl shadow-2xl p-5 z-20 
     animate-in fade-in zoom-in-95 slide-in-from-top-2
+
+    /* MOBILE: Fixo e largura total com margem */
     fixed left-4 right-4 top-24 w-auto
+
+    /* DESKTOP (md): Absoluto, largura fixa e alinhado à direita */
     md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-80
-"
-          >
+">
             <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
                 <Search size={14} className="text-brand-purple" />
-                Filtrar Produtos
+                Filtrar Clientes
               </h3>
               <button
                 onClick={() => setIsOpen(false)}
@@ -83,37 +86,21 @@ export function ProductListFilters({
 
             <form onSubmit={handleApply} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">
-                  Código
+                <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
+                  <User size={12} /> Nome / Razão Social
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: MWM035..."
+                  placeholder="Ex: Tech Solutions..."
                   className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
-                  value={localFilters.code}
+                  value={localFilters.name}
                   onChange={(e) =>
-                    setLocalFilters({ ...localFilters, code: e.target.value })
+                    setLocalFilters({ ...localFilters, name: e.target.value })
                   }
                   autoFocus
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">
-                  Descrição
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Chicote..."
-                  className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
-                  value={localFilters.description}
-                  onChange={(e) =>
-                    setLocalFilters({
-                      ...localFilters,
-                      description: e.target.value,
-                    })
-                  }
-                />
-              </div>
+
               <div className="pt-2 flex gap-2">
                 <button
                   type="button"
@@ -126,7 +113,7 @@ export function ProductListFilters({
                   type="submit"
                   className="flex-1 py-2.5 text-xs font-bold text-white bg-linear-to-r from-brand-purple to-brand-blue hover:shadow-lg hover:shadow-brand-purple/20 rounded-lg transition-all active:scale-95"
                 >
-                  APLICAR FILTROS
+                  APLICAR
                 </button>
               </div>
             </form>

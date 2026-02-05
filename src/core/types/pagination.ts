@@ -1,11 +1,9 @@
 export interface Page<T> {
-    content: T[];
-    totalPages: number;
-    totalElements: number;
-    last: boolean;
+  content: T[];
+  page: {
     size: number;
     number: number;
-    first: boolean;
-    numberOfElements: number;
-    empty: boolean;
+    totalElements: number;
+    totalPages: number;
+  };
 }

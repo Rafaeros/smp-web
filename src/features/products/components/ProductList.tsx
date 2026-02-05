@@ -1,25 +1,33 @@
 "use client";
 
-import { Barcode, Edit, Eye, Package, Plus, Trash2 } from "lucide-react";
+import { Barcode, Edit, Eye, Package, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { ActionBar } from "@/src/core/components/shared/datatable/ActionBar";
-import { DataTable, SortState } from "@/src/core/components/shared/datatable/DataTable";
-import { ActionDef, ColumnDef } from "@/src/core/components/shared/datatable/types";
-import { ProductListFilters } from "@/src/features/products/components/ProductsFilterProps";
+import {
+  DataTable,
+  SortState,
+} from "@/src/core/components/shared/datatable/DataTable";
+import { ColumnDef } from "@/src/core/components/shared/datatable/types";
+import { PageHeader } from "@/src/core/components/shared/PageHeader";
+import { Pagination } from "@/src/core/components/shared/Pagination";
 
-import { ProductFilters, productService } from "@/src/features/products/services/product.service";
+import { useToast } from "@/src/core/contexts/ToastContect";
+import {
+  ProductFilters,
+  productService,
+} from "@/src/features/products/services/product.service";
 import { Product } from "@/src/features/products/types/product";
+import { ProductListFilters } from "./ProductsFilterProps";
 
-export default function ProductsList() {
+export default function ProductList() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [activeFilters, setActiveFilters] = useState<ProductFilters>({});
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [totalItems, setTotalItems] = useState(0);
   const [sort, setSort] = useState<SortState | undefined>(undefined);
 
@@ -28,7 +36,8 @@ export default function ProductsList() {
     try {
       const data = await productService.getAll(page, 10, activeFilters, sort);
       setProducts(data.content);
-      setTotalItems(data.totalElements);
+      setTotalItems(data.page.totalElements); 
+      
     } catch (error) {
       console.error(error);
     } finally {
@@ -38,48 +47,47 @@ export default function ProductsList() {
 
   useEffect(() => {
     fetchProducts();
-    setSelectedIds(new Set());
   }, [page, activeFilters, sort]);
-
 
   const handleSort = (field: string) => {
     setSort((prev) => {
       if (prev && prev.field === field) {
-        if (prev.direction === "asc") {
-          return { field, direction: "desc" };
-        }
-        return undefined;
+        return prev.direction === "asc"
+          ? { field, direction: "desc" }
+          : undefined;
       }
       return { field, direction: "asc" };
     });
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) setSelectedIds(new Set(products.map((p) => p.id)));
-    else setSelectedIds(new Set());
+  const handleDelete = async (id: number) => {
+    if (confirm("Deseja realmente excluir este produto?")) {
+      try {
+        await productService.delete(id);
+        showToast("Produto removido com sucesso.", "SUCCESS");
+        fetchProducts();
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
-
-  const handleSelectRow = (id: number | string) => {
-    const numId = Number(id);
-    const newSet = new Set(selectedIds);
-    if (newSet.has(numId)) newSet.delete(numId);
-    else newSet.add(numId);
-    setSelectedIds(newSet);
-  };
-
-  const activeFiltersCount = (activeFilters.code ? 1 : 0) + (activeFilters.description ? 1 : 0);
 
   const columns: ColumnDef<Product>[] = [
     {
+      header: "ID",
+      accessorKey: "id",
+      className: "text-muted-foreground w-20 text-center font-mono text-xs",
+    },
+    {
       header: "Código",
-      accessorKey: "code", 
+      accessorKey: "code",
       cell: (item) => (
-        <div className="flex items-center gap-2 font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border w-fit">
+        <div className="flex items-center gap-2 font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border w-fit group-hover:bg-white transition-colors">
           <Barcode size={12} className="opacity-50" />
           {item.code}
         </div>
       ),
-      className: "w-40",
+      className: "w-48",
     },
     {
       header: "Descrição do Produto",
@@ -87,93 +95,71 @@ export default function ProductsList() {
       className: "font-medium text-foreground min-w-[300px]",
     },
     {
-      header: "ID",
-      accessorKey: "id",
-      className: "text-muted-foreground w-20 text-center font-mono text-xs",
-    }
+      header: "Ações",
+      className: "w-32 text-right",
+      cell: (item) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => router.push(`/products/${item.id}`)}
+            className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors"
+            title="Visualizar"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => router.push(`/products/${item.id}/edit`)}
+            className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+            title="Editar"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Excluir"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
   ];
 
-  const actions: ActionDef[] = [
-    {
-      label: "Incluir",
-      icon: Plus,
-      variant: "primary",
-      onClick: () => router.push("/products/new"),
-      tooltip: "Criar novo produto",
-    },
-    {
-      label: "Editar",
-      icon: Edit,
-      variant: "secondary",
-      requiresSelection: true,
-      disabled: selectedIds.size !== 1,
-      onClick: () => {
-        const id = Array.from(selectedIds)[0];
-        router.push(`/products/${id}/edit`);
-      },
-      tooltip: "Editar item selecionado",
-    },
-    {
-      label: "Visualizar",
-      icon: Eye,
-      variant: "secondary",
-      requiresSelection: true,
-      disabled: selectedIds.size !== 1,
-      onClick: () => {
-        const id = Array.from(selectedIds)[0];
-        router.push(`/products/${id}`);
-      },
-    },
-    {
-      label: "Excluir",
-      icon: Trash2,
-      variant: "danger",
-      requiresSelection: true,
-      onClick: async () => {
-        if (confirm(`Remover ${selectedIds.size} itens?`)) {
-          setSelectedIds(new Set());
-          fetchProducts();
-        }
-      },
-    }
-  ];
+  const activeFiltersCount =
+    (activeFilters.code ? 1 : 0) + (activeFilters.description ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans text-foreground">
-      <ActionBar
-        title="Cadastro de Produtos"
+    <div className="min-h-screen bg-background flex flex-col font-sans text-foreground">
+      <PageHeader
+        title="Catálogo de Produtos"
         subtitle="Gerenciamento de produtos"
         icon={Package}
-        actions={actions}
-        selectedCount={selectedIds.size}
-        totalItems={totalItems}
-        currentPage={page}
-        onPageChange={setPage}
-        onSearch={() => {}}
-        hideSearch={true}
-        customFilterComponent={
-          <ProductListFilters 
-            onFilter={setActiveFilters} 
-            activeFiltersCount={activeFiltersCount} 
+        onNew={() => router.push("/products/new")}
+        onExport={() => showToast("Exportando CSV...", "INFO")}
+        filterComponent={
+          <ProductListFilters
+            onFilter={setActiveFilters}
+            activeFiltersCount={activeFiltersCount}
           />
         }
-        onRefresh={fetchProducts}
       />
 
-      <main className="flex-1 bg-muted/5 p-6">
-        <div className="max-w-400 mx-auto">
-          <DataTable
-            data={products}
-            columns={columns}
-            selectedIds={selectedIds}
-            onSelectAll={handleSelectAll}
-            onSelectRow={handleSelectRow}
-            getRowId={(p) => p.id}
-            loading={loading}
-            currentSort={sort}
-            onSort={handleSort}
-          />
-        </div>
+      <main className="pb-10">
+        <Pagination
+          currentPage={page}
+          totalItems={totalItems}
+          pageSize={10}
+          onPageChange={setPage}
+        />
+
+        <DataTable
+          data={products}
+          columns={columns}
+          getRowId={(p) => p.id}
+          loading={loading}
+          currentSort={sort}
+          onSort={handleSort}
+        />
       </main>
     </div>
   );

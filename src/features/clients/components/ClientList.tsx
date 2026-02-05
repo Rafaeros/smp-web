@@ -1,216 +1,153 @@
 "use client";
 
-import { InfiniteScrollContainer } from "@/src/core/components/shared/InfiniteScrollContainer";
-import {
-  CheckSquare,
-  Edit,
-  Eye,
-  Plus,
-  Square,
-  Trash2,
-  Users
-} from "lucide-react";
+import { Building2, Edit, Eye, Trash2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { clientService } from "../services/clients.service";
-import { Client } from "../types/client";
-import { ClientListFilters } from "./ClientListFilter";
 
-export default function ClientsPage() {
+import {
+  DataTable,
+  SortState,
+} from "@/src/core/components/shared/datatable/DataTable";
+import { ColumnDef } from "@/src/core/components/shared/datatable/types";
+import { PageHeader } from "@/src/core/components/shared/PageHeader";
+import { Pagination } from "@/src/core/components/shared/Pagination";
+
+import { useToast } from "@/src/core/contexts/ToastContect";
+import { ClientFilters, clientService } from "../services/client.service";
+import { Client } from "../types/client";
+import { ClientListFilters } from "./ClientListFilterProps";
+
+export default function ClientList() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [activeFilters, setActiveFilters] = useState<ClientFilters>({});
+  const [sort, setSort] = useState<SortState | undefined>(undefined);
+  const [totalItems, setTotalItems] = useState(0);
 
-  // Estado para armazenar os filtros complexos
-  const [activeFilters, setActiveFilters] = useState<any>({});
-
-  const fetchClients = async (isNewSearch = false) => {
+  const fetchClients = async () => {
     setLoading(true);
     try {
-      const currentPage = isNewSearch ? 0 : page;
-      const data = await clientService.getAll(
-        currentPage,
-        10,
-        activeFilters.name || "",
-      );
-
-      setClients((prev) => {
-        if (currentPage === 0) return data.content;
-        return [...prev, ...data.content];
-      });
-
-      setHasMore(!data.last);
-      if (isNewSearch) setPage(0);
+      const data = await clientService.getAll(page, 10, activeFilters, sort);
+      setClients(data.content);
+      setTotalItems(data.page.totalElements);
     } catch (error) {
-      console.error("Erro ao carregar clientes", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClients(true);
-    setSelectedIds(new Set());
-  }, [activeFilters]);
+    fetchClients();
+  }, [page, activeFilters, sort]);
 
-  // Infinite Scroll
-  useEffect(() => {
-    if (page > 0) fetchClients(false);
-  }, [page]);
-
-  const loadMore = () => setPage((prev) => prev + 1);
-
-  const toggleSelect = (id: number) => {
-    const newSet = new Set(selectedIds);
-    if (newSet.has(id)) newSet.delete(id);
-    else newSet.add(id);
-    setSelectedIds(newSet);
+  const handleSort = (field: string) => {
+    setSort((prev) => {
+      if (prev && prev.field === field) {
+        return prev.direction === "asc"
+          ? { field, direction: "desc" }
+          : undefined;
+      }
+      return { field, direction: "asc" };
+    });
   };
 
-  const handleBulkDelete = () => {
-    if (confirm(`Excluir ${selectedIds.size} clientes selecionados?`)) {
-      setClients((prev) => prev.filter((c) => !selectedIds.has(c.id)));
-      setSelectedIds(new Set());
+  const handleDelete = async (id: number) => {
+    if (confirm("Tem certeza que deseja excluir este cliente?")) {
+      try {
+        await clientService.deleteBatch([id]);
+        showToast("Cliente removido.", "SUCCESS");
+        fetchClients();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border pb-4 pt-6 px-6">
-        <div className="max-w-5xl mx-auto space-y-4">
-          <div className="flex justify-between items-end">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <div className="p-2 bg-brand-purple/10 rounded-lg text-brand-purple">
-                  <Users size={24} />
-                </div>
-                Clientes
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1 ml-1">
-                Gerenciamento da base de contatos
-              </p>
-            </div>
+  const columns: ColumnDef<Client>[] = [
+    {
+      header: "ID",
+      accessorKey: "id",
+      className: "w-16 text-center font-mono text-xs text-muted-foreground",
+    },
+    {
+      header: "Cliente / Empresa",
+      accessorKey: "name",
+      cell: (item) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/10">
+            <Building2 size={16} />
           </div>
-          <div className="flex gap-3 h-10 items-center justify-between">
-            <ClientListFilters onFilter={setActiveFilters} />
-            <div className="flex gap-3">
-              {selectedIds.size > 0 ? (
-                <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {selectedIds.size} selecionado(s)
-                  </span>
-                  <button
-                    onClick={handleBulkDelete}
-                    className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 px-3 py-2 rounded-lg text-xs font-bold transition-colors"
-                  >
-                    <Trash2 size={14} /> EXCLUIR
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => router.push("/clients/new")}
-                  className="bg-brand-purple text-white font-semibold px-4 py-2 rounded-lg hover:shadow-lg hover:bg-brand-purple/90 active:scale-95 transition-all flex items-center gap-2 text-sm"
-                >
-                  <Plus size={16} strokeWidth={3} />
-                  <span>Novo</span>
-                </button>
-              )}
-            </div>
-          </div>
+          <span className="font-bold text-foreground text-sm">{item.name}</span>
         </div>
-      </div>
+      ),
+      className: "w-full",
+    },
+    {
+      header: "Ações",
+      className: "w-32 text-right",
+      cell: (item) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => router.push(`/clients/${item.id}`)}
+            className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => router.push(`/clients/${item.id}/edit`)}
+            className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
-      <div className="max-w-5xl mx-auto px-6 py-6 bg-grid min-h-[calc(100vh-180px)]">
-        <InfiniteScrollContainer
+  return (
+    <div className="min-h-screen bg-background font-sans text-foreground">
+      <PageHeader
+        title="Gestão de Clientes"
+        subtitle="Base de clientes cadastrados"
+        icon={Users}
+        onNew={() => router.push("/clients/new")}
+        onExport={() => showToast("Exportando CSV...", "INFO")}
+        filterComponent={
+          <ClientListFilters
+            onFilter={setActiveFilters}
+            activeFiltersCount={activeFilters.name ? 1 : 0}
+          />
+        }
+      />
+
+      <main className="pb-10">
+        <Pagination
+          currentPage={page}
+          totalItems={totalItems}
+          pageSize={10}
+          onPageChange={setPage}
+        />
+        
+        <DataTable
+          data={clients}
+          columns={columns}
+          getRowId={(c) => c.id}
           loading={loading}
-          hasMore={hasMore}
-          onLoadMore={loadMore}
-          emptyMessage="Nenhum cliente encontrado com estes filtros."
-        >
-          {clients.map((client) => {
-            const isSelected = selectedIds.has(client.id);
-
-            return (
-              <div
-                key={client.id}
-                // LOGICA MUDADA: Clicar no card seleciona a linha inteira
-                onClick={() => toggleSelect(client.id)}
-                className={`
-                  group relative flex items-center p-4 rounded-xl border transition-all duration-200 cursor-pointer select-none
-                  ${
-                    isSelected
-                      ? "bg-brand-purple/5 border-brand-purple/50 shadow-[0_0_0_1px_rgba(118,9,232,0.2)]"
-                      : "bg-card border-border hover:border-brand-purple/30 hover:shadow-md"
-                  }
-                `}
-              >
-                {/* Checkbox Visual */}
-                <div className="pr-4 text-muted-foreground">
-                  {isSelected ? (
-                    <CheckSquare
-                      size={20}
-                      className="text-brand-purple fill-brand-purple/10"
-                    />
-                  ) : (
-                    <Square
-                      size={20}
-                      className="group-hover:text-brand-purple/50"
-                    />
-                  )}
-                </div>
-
-                {/* Conteúdo */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <h3
-                      className={`font-bold truncate text-base ${
-                        isSelected ? "text-brand-purple" : "text-foreground"
-                      }`}
-                    >
-                      {client.name}
-                    </h3>
-                    {/* Exemplo de Badge de Status vindo do filtro */}
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border border-border">
-                      {client.id % 2 === 0 ? "ATIVO" : "PENDENTE"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-mono flex gap-3">
-                    <span>ID: {client.id}</span>
-                  </p>
-                </div>
-
-                {/* Ações Explícitas de Navegação (Sem Delete) */}
-                <div className="flex items-center gap-2 pl-4 border-l border-border/50 ml-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/clients/${client.id}`);
-                    }}
-                    className="p-2 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors flex flex-col items-center gap-1"
-                    title="Visualizar Detalhes"
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/clients/${client.id}/edit`);
-                    }}
-                    className="p-2 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                    title="Editar Cadastro"
-                  >
-                    <Edit size={18} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </InfiniteScrollContainer>
-      </div>
+          currentSort={sort}
+          onSort={handleSort}
+        />
+      </main>
     </div>
   );
 }

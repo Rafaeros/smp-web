@@ -26,6 +26,7 @@ export const productService = {
 
     if (filters?.code) params.append("code", filters.code);
     if (filters?.description) params.append("description", filters.description);
+    
     if (sort && sort.field) {
       params.append("sort", `${sort.field},${sort.direction}`);
     } else {
@@ -37,4 +38,12 @@ export const productService = {
     );
     return response.data;
   },
+
+  delete: async (id: number) => {
+    await api.delete(`/products/${id}`);
+  },
+  
+  create: async (data: any) => {
+    return api.post("/products", data);
+  }
 };

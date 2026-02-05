@@ -1,13 +1,21 @@
-import Link from 'next/link'; // Importante para navegação rápida
-import { ArrowRight, Activity, ShieldCheck, Cpu } from 'lucide-react'; // Ícones opcionais para decorar
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, Activity, ShieldCheck, Cpu } from 'lucide-react';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900">
       <nav className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
         <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-linear-to-r from-[#7609e8] to-[#316ef3]" />
-            <span className="font-bold text-xl tracking-tight">SMP System</span>
+            <Image 
+              src="/icon.png"
+              alt="SMP Logo" 
+              width={32}         
+              height={32}         
+              className="rounded"  
+              priority
+            />
+            <span className="font-bold text-xl tracking-tight">SMP</span>
         </div>
         
         <Link 
@@ -20,9 +28,6 @@ export default function Home() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 text-center max-w-4xl mx-auto space-y-8 py-12">
         
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-[#316ef3] border border-blue-100">
-          Versão 4.0 Disponível
-        </span>
 
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
           Orquestração Inteligente para <br/>
@@ -31,14 +36,12 @@ export default function Home() {
           </span>
         </h1>
 
-        {/* Texto de Resumo (O que você escreveu) */}
         <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl">
           O SMP System é uma plataforma projetada para conectar, monitorar e gerenciar dispositivos IoT em tempo real. 
           Resolva o desafio de integrar hardware embarcado com a gestão estratégica, 
           oferecendo dashboards de eficiência (OEE) e controle total.
         </p>
 
-        {/* Call to Action (Botão Principal) */}
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
           <Link 
             href="/login" 
