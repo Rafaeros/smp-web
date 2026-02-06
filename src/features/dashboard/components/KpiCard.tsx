@@ -2,7 +2,6 @@ import { Activity, Cpu, Zap, AlertTriangle } from 'lucide-react';
 import { DashboardKPI } from '../types';
 
 const icons = {
-  // Ajustei os backgrounds dos ícones para ficarem bons no branco também
   production: { icon: Activity, color: 'text-blue-500', bg: 'bg-blue-50' },
   devices: { icon: Cpu, color: 'text-purple-500', bg: 'bg-purple-50' },
   energy: { icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50' },
@@ -14,7 +13,6 @@ export function KpiCard({ data }: { data: DashboardKPI }) {
   const Icon = style.icon;
 
   return (
-    // MUDANÇA: bg-[#161b22] -> bg-card | border-gray-800 -> border-border
     <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
       <div className="flex justify-between items-start">
         <div>

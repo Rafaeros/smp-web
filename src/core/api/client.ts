@@ -36,17 +36,6 @@ api.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      destroyCookie(undefined, 'smp.token', { path: '/' });
-      
-      if (typeof window !== 'undefined') {
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/' && currentPath !== '/login') {
-             window.location.href = '/login';
-        }
-      }
-    }
-
     return Promise.reject(error);
   }
 );

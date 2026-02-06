@@ -5,7 +5,7 @@ import {
   ArrowUp,
   ArrowDownUp,
   Loader2,
-  CheckSquare, // Ainda importamos, mas usamos condicionalmente
+  CheckSquare,
   Square,
 } from "lucide-react";
 import { ColumnDef } from "./types";
@@ -22,8 +22,6 @@ interface DataTableProps<T> {
   getRowId: (item: T) => number | string;
   onSort?: (field: string) => void;
   currentSort?: SortState;
-  
-  // Tornamos as props de seleção OPCIONAIS
   selectedIds?: Set<number | string>;
   onSelectAll?: (checked: boolean) => void;
   onSelectRow?: (id: number | string) => void;
@@ -36,12 +34,11 @@ export function DataTable<T>({
   getRowId,
   onSort,
   currentSort,
-  selectedIds,      // Pode ser undefined
-  onSelectAll,      // Pode ser undefined
-  onSelectRow,      // Pode ser undefined
+  selectedIds,    
+  onSelectAll,  
+  onSelectRow,    
 }: DataTableProps<T>) {
   
-  // Verifica se o modo de seleção está ativo
   const isSelectionEnabled = selectedIds && onSelectAll && onSelectRow;
 
   const allSelected = isSelectionEnabled && data.length > 0 && data.every((item) => selectedIds.has(getRowId(item)));
@@ -62,7 +59,6 @@ export function DataTable<T>({
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
             <tr>
-              {/* Só renderiza a coluna de checkbox SE a seleção estiver habilitada */}
               {isSelectionEnabled && (
                 <th className="p-4 w-12 text-center">
                   <button
@@ -118,7 +114,6 @@ export function DataTable<T>({
                 return (
                   <tr
                     key={id}
-                    // Se tiver seleção, clica para selecionar. Se não, nada acontece no clique da linha.
                     onClick={() => isSelectionEnabled && onSelectRow && onSelectRow(id)}
                     className={`
                       group transition-all duration-200

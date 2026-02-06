@@ -18,9 +18,6 @@ export function Pagination({
   const safeTotalItems = Number(totalItems) || 0;
   const safePageSize = Number(pageSize) || 10;
   const safeCurrentPage = Number(currentPage) || 0;
-
-  // CORREÇÃO: Se for 0, simplesmente não renderiza nada. 
-  // Deixa a DataTable lidar com o visual de "Vazio" ou "Loading".
   if (safeTotalItems === 0) return null;
 
   const totalPages = Math.ceil(safeTotalItems / safePageSize);

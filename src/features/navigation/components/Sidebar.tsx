@@ -46,7 +46,7 @@ export function Sidebar() {
   const SidebarContent = () => (
     <>
       <div
-        className={`p-6 flex items-center justify-between ${
+        className={`p-6 flex items-center justify-between shrink-0 ${
           isCollapsed ? "justify-center" : ""
         }`}
       >
@@ -74,8 +74,7 @@ export function Sidebar() {
           <X size={24} />
         </button>
       </div>
-
-      <nav className="flex-1 px-3 space-y-1 mt-4">
+      <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -111,9 +110,8 @@ export function Sidebar() {
           );
         })}
       </nav>
-
       <div
-        className={`p-4 border-t border-border ${
+        className={`p-4 border-t border-border mt-auto shrink-0 ${
           isCollapsed ? "items-center" : ""
         }`}
       >

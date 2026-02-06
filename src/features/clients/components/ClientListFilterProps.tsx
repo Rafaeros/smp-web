@@ -2,7 +2,7 @@
 
 import { Filter, Search, User, X } from "lucide-react";
 import { useState } from "react";
-import { ClientFilters } from "../services/client.service"; // Assumindo que você criou o service na etapa anterior
+import { ClientFilters } from "../services/client.service";
 
 interface ClientListFiltersProps {
   onFilter: (filters: ClientFilters) => void;
