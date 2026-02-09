@@ -1,7 +1,7 @@
 import { api } from "@/src/core/api/client";
 import { SortState } from "@/src/core/components/shared/datatable/DataTable";
 import { Page } from "@/src/core/types/pagination";
-import { Order } from "../types/orders";
+import { Order, OrderSummary } from "../types/orders";
 
 export interface OrderFilters {
   code?: string;
@@ -43,6 +43,17 @@ export const orderService = {
 
     const response = await api.get<Page<Order>>("/orders", { params });
     return response as unknown as Page<Order>;
+  },
+
+  getSummary: async (query: string): Promise<Page<OrderSummary>> => {
+    const params = {
+      page: 0,
+      size: 10,
+      code: query 
+    };
+    
+    const response = await api.get<Page<OrderSummary>>("/orders/summary", { params });
+    return response as unknown as Page<OrderSummary>;
   },
 
   delete: async (id: number): Promise<void> => {

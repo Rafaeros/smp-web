@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  Save,
   Activity,
-  Layers,
-  FileText,
-  Wifi,
-  Cpu,
-  Settings,
   AlertTriangle,
+  ArrowLeft,
+  ChevronDown,
+  Cpu,
+  FileText,
+  Layers,
+  Save,
+  Settings,
+  Wifi,
 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import {
   DeviceStatus,
   ProcessStage,
+  ProcessStageLabels,
   ProcessStatus,
 } from "@/src/features/devices/types";
 
@@ -26,6 +28,9 @@ import {
   UpdateUserDeviceDTO,
   UserDeviceDetails,
 } from "@/src/features/userdevices/types";
+
+import { OrderSearchInput } from "@/src/features/orders/components/OrderSearchInput";
+import { OrderSummary } from "@/src/features/orders/types/orders";
 
 const statusConfig = {
   RUNNING: {
@@ -41,6 +46,12 @@ const statusConfig = {
   },
 };
 
+interface DeviceFormData {
+  name: string;
+  stage: ProcessStage | undefined;
+  orderId: number | null;
+}
+
 export default function DeviceDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,11 +60,12 @@ export default function DeviceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [device, setDevice] = useState<UserDeviceDetails | null>(null);
+  const [initialOrderCode, setInitialOrderCode] = useState("");
 
-  const [formData, setFormData] = useState<UpdateUserDeviceDTO>({
+  const [formData, setFormData] = useState<DeviceFormData>({
     name: "",
-    order: "",
     stage: undefined,
+    orderId: null,
   });
 
   useEffect(() => {
@@ -68,7 +80,12 @@ export default function DeviceDetailsPage() {
       setFormData({
         name: data.name,
         stage: data.stage,
+        orderId: null,
       });
+
+      if (data.currentOrder) {
+        setInitialOrderCode(data.currentOrder);
+      }
     } catch (error) {
       console.error("Erro ao carregar", error);
       toast.error("Erro ao carregar detalhes do dispositivo");
@@ -77,16 +94,27 @@ export default function DeviceDetailsPage() {
     }
   }
 
-  const handleChange = (field: keyof UpdateUserDeviceDTO, value: any) => {
+  const handleChange = (field: keyof DeviceFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOrderSelect = (order: OrderSummary) => {
+    setFormData((prev) => ({ ...prev, orderId: order.id }));
+    toast.info(`Ordem ${order.code} selecionada.`);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const updatedDevice = await userDeviceService.update(id, formData);
-      setDevice(updatedDevice);
+      const payload: UpdateUserDeviceDTO = {
+        name: formData.name,
+        processStage: formData.stage,
+        orderId: formData.orderId || undefined,
+      };
+
+      await userDeviceService.update(id, payload);
+      await loadData();
       toast.success("Configurações atualizadas com sucesso!");
     } catch (error) {
       console.error(error);
@@ -120,12 +148,13 @@ export default function DeviceDetailsPage() {
     return (
       <div className="p-8 text-foreground">Dispositivo não encontrado.</div>
     );
+
   const backendKey = device.process as unknown as keyof typeof ProcessStatus;
   const style = statusConfig[backendKey] || statusConfig.IDLE;
   const translatedText = ProcessStatus[backendKey] || device.process;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto py-10 px-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
@@ -162,9 +191,7 @@ export default function DeviceDetailsPage() {
                 VÍNCULO: #{device.id}
               </span>
               <span>•</span>
-              <span className="font-mono text-xs">
-                MAC: {device.macAddress}
-              </span>
+              <span className="font-mono text-xs">MAC: {device.macAddress}</span>
             </p>
           </div>
         </div>
@@ -214,18 +241,18 @@ export default function DeviceDetailsPage() {
                   onChange={(e) => handleChange("name", e.target.value)}
                 />
               </div>
+
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <FileText size={12} /> Ordem de Produção (OP)
                 </label>
-                <input
-                  type="text"
-                  placeholder="Ex: OP-2026-X99"
-                  className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all font-mono uppercase"
-                  value={formData.order}
-                  onChange={(e) => handleChange("order", e.target.value)}
+
+                <OrderSearchInput
+                  onOrderSelect={handleOrderSelect}
+                  initialDisplayValue={initialOrderCode}
                 />
               </div>
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <Layers size={12} /> Etapa Atual
@@ -234,35 +261,28 @@ export default function DeviceDetailsPage() {
                   <select
                     className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all appearance-none cursor-pointer"
                     value={formData.stage || ""}
-                    onChange={(e) => handleChange("stage", e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleChange(
+                        "stage",
+                        val === "" ? undefined : (val as ProcessStage)
+                      );
+                    }}
                   >
-                    <option value="" disabled>
-                      Selecione uma etapa...
-                    </option>
+                    <option value="">Selecione uma etapa...</option>
 
                     {Object.values(ProcessStage).map((stageVal) => (
                       <option key={stageVal} value={stageVal}>
-                        {stageVal}
+                        {ProcessStageLabels[stageVal]}
                       </option>
                     ))}
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 9l-7 7-7-7"
-                      ></path>
-                    </svg>
+                    <ChevronDown size={16} />
                   </div>
                 </div>
               </div>
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <Activity size={12} /> Status (Sensor)
@@ -287,7 +307,7 @@ export default function DeviceDetailsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 bg-linear-to-r from-brand-purple to-brand-blue hover:opacity-90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-brand-blue/20 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex items-center gap-2 bg-linear-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {saving ? (
                   "Salvando..."
@@ -349,5 +369,5 @@ export default function DeviceDetailsPage() {
         </div>
       </div>
     </div>
-  );  
+  );
 }

@@ -1,4 +1,8 @@
-import { DeviceStatus, ProcessStage, ProcessStatus } from "@/src/features/devices/types";
+import {
+  DeviceStatus,
+  ProcessStage,
+  ProcessStatus,
+} from "@/src/features/devices/types";
 
 export interface DeviceBindingDTO {
   id: number;
@@ -23,7 +27,9 @@ export interface UserDeviceDetails {
   ipAddress: string;
   status: DeviceStatus;
   process: ProcessStatus;
-  stage: ProcessStage;
+  stage?: ProcessStage;
+  currentOrder?: string;
+  orderId?: number;
   lastSeen: string;
   coordinateX: number;
   coordinateY: number;
@@ -31,6 +37,6 @@ export interface UserDeviceDetails {
 
 export interface UpdateUserDeviceDTO {
   name?: string;
-  stage?: ProcessStage;
-  order?: string;
+  processStage?: ProcessStage;
+  orderId?: number;
 }

@@ -6,6 +6,11 @@ export enum OrderStatus {
   CANCELED = "CANCELED"
 }
 
+export interface OrderSummary {
+  id: number;
+  code: string;
+}
+
 export interface Order {
   id: number;
   code: string;
