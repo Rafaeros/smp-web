@@ -59,8 +59,7 @@ export default function ClientList() {
   const handleDelete = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este cliente?")) {
       try {
-        await clientService.deleteBatch([id]);
-        showToast("Cliente removido.", "SUCCESS");
+        await clientService.delete(id);
         fetchClients();
       } catch (err) {
         console.error(err);
@@ -138,7 +137,7 @@ export default function ClientList() {
           pageSize={10}
           onPageChange={setPage}
         />
-        
+
         <DataTable
           data={clients}
           columns={columns}

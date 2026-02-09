@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Calendar, Edit, Eye, Factory, User } from "lucide-react";
+import { Box, Calendar, Edit, Eye, Factory, Trash2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -22,7 +22,7 @@ import { OrderListFilters } from "./OrderListFiltersProps";
 
 const getStatusBadge = (status: OrderStatus) => {
   const styles: Record<string, string> = {
-    [OrderStatus.RELEASED]: "bg-gray-100 text-yellow-600 border-yellow  -200",
+    [OrderStatus.RELEASED]: "bg-gray-100 text-yellow-600 border-yellow-200",
     [OrderStatus.STARTED]: "bg-blue-50 text-brand-blue border-blue-200",
     [OrderStatus.FINISHED]: "bg-green-50 text-green-600 border-green-200",
     [OrderStatus.STOPPED]: "bg-red-50 text-red-600 border-red-200",
@@ -89,6 +89,17 @@ export function OrderList() {
       }
       return { field, direction: "asc" };
     });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Tem certeza que deseja excluir esta ordem?")) return;
+    
+    try {
+      await orderService.delete(id);
+      fetchOrders();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const columns: ColumnDef<Order>[] = [
@@ -189,12 +200,21 @@ export function OrderList() {
           >
             <Eye size={16} />
           </button>
+          
           <button
             onClick={() => router.push(`/orders/${item.id}/edit`)}
             className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
             title="Editar"
           >
             <Edit size={16} />
+          </button>
+
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Excluir"
+          >
+            <Trash2 size={16} />
           </button>
         </div>
       ),

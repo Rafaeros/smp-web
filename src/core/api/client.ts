@@ -47,15 +47,18 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 api.interceptors.response.use(
   (response) => {
     const apiResponse = response.data as ApiResponse;
-    
-    // Check if flash is enabled in config OR if it is a login request
-    const shouldUseFlash = response.config.flash || response.config.url?.includes("/auth/login");
+    const method = response.config.method?.toUpperCase();
+    const isGetRequest = method === "GET";
+    const isLoginRequest = response.config.url?.includes("/auth/login");
+    const shouldUseFlash = response.config.flash || isLoginRequest;
 
     if (apiResponse.message && apiResponse.severity === "SUCCESS") {
-      if (shouldUseFlash) {
-        setFlashMessage(apiResponse.message, "SUCCESS");
-      } else {
-        dispatchToast(apiResponse.message, "SUCCESS");
+      if (!isGetRequest || isLoginRequest) {
+        if (shouldUseFlash) {
+          setFlashMessage(apiResponse.message, "SUCCESS");
+        } else {
+          dispatchToast(apiResponse.message, "SUCCESS");
+        }
       }
     }
 
@@ -68,10 +71,9 @@ api.interceptors.response.use(
   (error: AxiosError<ApiResponse>) => {
     const status = error.response?.status;
     const apiError = error.response?.data;
-    const message = apiError?.message || "An unexpected error occurred.";
+    const message = apiError?.message || "Ocorreu um erro inesperado.";
     const severity = apiError?.severity || "ERROR";
 
-    // Critical Server Errors
     if (!status || status >= 500) {
       if (typeof window !== "undefined") {
         window.location.href = "/error";
@@ -79,10 +81,8 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Unauthorized (Logout)
     if (status === 401) {
       destroyCookie(undefined, "smp.token", { path: "/" });
-
       if (
         typeof window !== "undefined" &&
         !window.location.pathname.includes("/login")
@@ -91,8 +91,6 @@ api.interceptors.response.use(
       }
       return Promise.reject(apiError || error);
     }
-
-    // Business Logic Errors / Forbidden
     dispatchToast(message, severity);
 
     return Promise.reject(apiError || error);

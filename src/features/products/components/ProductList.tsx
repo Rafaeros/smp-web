@@ -36,8 +36,7 @@ export default function ProductList() {
     try {
       const data = await productService.getAll(page, 10, activeFilters, sort);
       setProducts(data.content);
-      setTotalItems(data.page.totalElements); 
-      
+      setTotalItems(data.page.totalElements);
     } catch (error) {
       console.error(error);
     } finally {
@@ -64,7 +63,6 @@ export default function ProductList() {
     if (confirm("Deseja realmente excluir este produto?")) {
       try {
         await productService.delete(id);
-        showToast("Produto removido com sucesso.", "SUCCESS");
         fetchProducts();
       } catch (error) {
         console.error(error);

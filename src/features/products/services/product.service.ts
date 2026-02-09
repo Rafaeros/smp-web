@@ -1,6 +1,6 @@
 import { api } from "@/src/core/api/client";
 import { Page } from "@/src/core/types/pagination";
-import { Product } from "../types/product";
+import { CreateProduct, Product, UpdateProduct } from "../types/product";
 
 export interface ProductFilters {
   code?: string;
@@ -13,37 +13,48 @@ export interface SortState {
 }
 
 export const productService = {
+  create: async (data: CreateProduct): Promise<Product> => {
+    const response = await api.post("/products", data, { 
+      flash: true 
+    });
+    return response as unknown as Product;
+  },
+  
   getAll: async (
     page = 0,
     size = 10,
     filters?: ProductFilters,
     sort?: SortState,
   ): Promise<Page<Product>> => {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString(),
-    });
-
-    if (filters?.code) params.append("code", filters.code);
-    if (filters?.description) params.append("description", filters.description);
-    
-    if (sort && sort.field) {
-      params.append("sort", `${sort.field},${sort.direction}`);
+    const params: any = {
+      page,
+      size,
+    };
+    if (filters?.code) params.code = filters.code;
+    if (filters?.description) params.description = filters.description;
+    if (sort?.field) {
+      params.sort = `${sort.field},${sort.direction}`;
     } else {
-      params.append("sort", "id,desc");
+      params.sort = "id,desc";
     }
-
-    const response = await api.get<Page<Product>>(
-      `/products?${params.toString()}`,
-    );
-    return response.data;
+    const response = await api.get<Page<Product>>("/products", { params });
+    
+    return response as unknown as Page<Product>;
   },
 
-  delete: async (id: number) => {
+  getById: async (id: number): Promise<Product> => {
+    const response = await api.get(`/products/${id}`);
+    return response as unknown as Product;
+  },
+
+  update: async (id: number, data: UpdateProduct): Promise<Product> => {
+    const response = await api.put(`/products/${id}`, data, { 
+      flash: true 
+    });
+    return response as unknown as Product;
+  },
+
+  delete: async (id: number): Promise<void> => {
     await api.delete(`/products/${id}`);
-  },
-  
-  create: async (data: any) => {
-    return api.post("/products", data);
   }
 };

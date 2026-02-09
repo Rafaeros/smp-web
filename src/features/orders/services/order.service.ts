@@ -16,7 +16,7 @@ export const orderService = {
   getAll: async (
     page: number,
     size: number,
-    filters: OrderFilters,
+    filters?: OrderFilters,
     sort?: SortState,
   ): Promise<Page<Order>> => {
     const params: Record<string, any> = {
@@ -24,23 +24,25 @@ export const orderService = {
       size,
     };
 
-    if (filters.code) params.code = filters.code;
-    if (filters.productCode) params.productCode = filters.productCode;
-    if (filters.clientId) params.clientId = filters.clientId;
-    if (filters.status && filters.status !== "ALL") {
-      params.status = filters.status;
+    if (filters) {
+      if (filters.code) params.code = filters.code;
+      if (filters.productCode) params.productCode = filters.productCode;
+      if (filters.clientId) params.clientId = filters.clientId;
+      if (filters.status && filters.status !== "ALL") {
+        params.status = filters.status;
+      }
+      if (filters.startDeliveryDate)
+        params.startDeliveryDate = filters.startDeliveryDate;
+      if (filters.endDeliveryDate)
+        params.endDeliveryDate = filters.endDeliveryDate;
     }
-    if (filters.startDeliveryDate)
-      params.startDeliveryDate = filters.startDeliveryDate;
-    if (filters.endDeliveryDate)
-      params.endDeliveryDate = filters.endDeliveryDate;
 
-    if (sort) {
+    if (sort?.field) {
       params.sort = `${sort.field},${sort.direction}`;
     }
 
     const response = await api.get<Page<Order>>("/orders", { params });
-    return response.data;
+    return response as unknown as Page<Order>;
   },
 
   delete: async (id: number): Promise<void> => {
@@ -51,6 +53,7 @@ export const orderService = {
     const response = await api.post("/orders/sync", null, {
       params: { ...filter, force },
     });
-    return response.data;
+
+    return response;
   },
 };

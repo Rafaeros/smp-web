@@ -3,27 +3,27 @@ import { UserDeviceMap, DeviceBindingDTO, UserDeviceDetails, UpdateUserDeviceDTO
 
 export const userDeviceService = {
   getMyMap: async (): Promise<UserDeviceMap[]> => {
-    const { data } = await api.get<UserDeviceMap[]>('/user-devices/my-map');
-    return data;
+    // O TypeScript acha que é AxiosResponse, mas nós sabemos que é UserDeviceMap[]
+    const response = await api.get('/user-devices/map');
+    return response as unknown as UserDeviceMap[];
   },
 
   bindDevice: async (dto: DeviceBindingDTO): Promise<UserDeviceMap> => {
-    const { data } = await api.post<UserDeviceMap>('/user-devices/bind', dto);
-    return data;
+    const response = await api.post('/user-devices', dto);
+    return response as unknown as UserDeviceMap;
   },
 
   getDetails: async (id: number): Promise<UserDeviceDetails> => {
-    const { data } = await api.get<UserDeviceDetails>(`/user-devices/${id}`);
-    return data;
+    const response = await api.get(`/user-devices/${id}`);
+    return response as unknown as UserDeviceDetails;
   },
 
   update: async (id: number, dto: UpdateUserDeviceDTO): Promise<UserDeviceDetails> => {
-    const { data } = await api.patch<UserDeviceDetails>(`/user-devices/${id}`, dto);
-    return data;
+    const response = await api.patch(`/user-devices/${id}`, dto);
+    return response as unknown as UserDeviceDetails;
   },
 
   unbind: async (id: number): Promise<void> => {
     await api.delete(`/user-devices/${id}`);
   }
-
 };

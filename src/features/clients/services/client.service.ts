@@ -1,6 +1,6 @@
 import { api } from "@/src/core/api/client";
-import { Page } from "@/src/core/types/pagination";
 import { SortState } from "@/src/core/components/shared/datatable/DataTable";
+import { Page } from "@/src/core/types/pagination";
 import { Client, CreateClient } from "../types/client";
 
 export interface ClientFilters {
@@ -9,42 +9,41 @@ export interface ClientFilters {
 
 export const clientService = {
   create: async (client: CreateClient): Promise<Client> => {
-    const { data } = await api.post<Client>("/clients", client);
-    return data;
+    const response = await api.post("/clients", client, { flash: true });
+    return response as unknown as Client;
   },
 
   getAll: async (
-    page = 0, 
-    size = 10, 
-    filters?: ClientFilters, 
-    sort?: SortState
+    page = 0,
+    size = 10,
+    filters?: ClientFilters,
+    sort?: SortState,
   ): Promise<Page<Client>> => {
-    
-    const params = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString()
-    });
+    const params: Record<string, any> = {
+      page,
+      size,
+    };
 
     if (filters?.name) {
-      params.append("name", filters.name);
+      params.name = filters.name;
     }
 
     if (sort && sort.field) {
-      params.append("sort", `${sort.field},${sort.direction}`);
+      params.sort = `${sort.field},${sort.direction}`;
     } else {
-      params.append("sort", "name,asc");
+      params.sort = "name,asc";
     }
 
-    const response = await api.get<Page<Client>>(`/clients?${params.toString()}`);
-    return response.data;
+    const response = await api.get("/clients", { params });
+    return response as unknown as Page<Client>;
   },
 
   getDetails: async (id: number): Promise<Client> => {
-    const { data } = await api.get<Client>(`/clients/${id}`);
-    return data;
+    const response = await api.get(`/clients/${id}`);
+    return response as unknown as Client;
   },
 
-  deleteBatch: async (ids: number[]) => {
-    await api.delete("/clients/batch", { data: ids });
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/clients/${id}`);
   }
 };
