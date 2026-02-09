@@ -1,8 +1,11 @@
 export interface AuthResponse {
   token: string;
+  id: number;
+  username: string;
+  role: string;
 }
 
-export interface LoginCredentials {
+export interface AuthRequest {
   username: string;
   password: string;
 }

@@ -14,20 +14,21 @@ interface ToastProps {
 }
 
 const icons = {
-  ERROR: <AlertCircle className="text-red-500" size={20} />,
-  WARNING: <AlertTriangle className="text-amber-500" size={20} />,
-  INFO: <Info className="text-blue-500" size={20} />,
-  SUCCESS: <CheckCircle className="text-emerald-500" size={20} />,
+  ERROR: <AlertCircle size={20} />,
+  WARNING: <AlertTriangle size={20} />,
+  INFO: <Info size={20} />,
+  SUCCESS: <CheckCircle size={20} />,
 };
 
-const bgColors = {
-  ERROR: "border-red-500/20 bg-red-50 dark:bg-red-950/20",
-  WARNING: "border-amber-500/20 bg-amber-50 dark:bg-amber-950/20",
-  INFO: "border-blue-500/20 bg-blue-50 dark:bg-blue-950/20",
-  SUCCESS: "border-emerald-500/20 bg-emerald-50 dark:bg-emerald-950/20",
+// Estilos baseados na severidade (Fundo Colorido + Texto Escuro/Contraste)
+const variantStyles = {
+  SUCCESS: "bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-900/90 dark:border-emerald-800 dark:text-white",
+  ERROR: "bg-red-100 border-red-200 text-red-800 dark:bg-red-900/90 dark:border-red-800 dark:text-white",
+  WARNING: "bg-amber-100 border-amber-200 text-amber-800 dark:bg-amber-900/90 dark:border-amber-800 dark:text-white",
+  INFO: "bg-blue-100 border-blue-200 text-blue-800 dark:bg-blue-900/90 dark:border-blue-800 dark:text-white",
 };
 
-export function Toast({ message, severity, onClose, duration = 5000 }: ToastProps) {
+export function Toast({ message, severity, onClose, duration = 4000 }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
@@ -35,14 +36,29 @@ export function Toast({ message, severity, onClose, duration = 5000 }: ToastProp
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, x: 20 }}
-      animate={{ opacity: 1, y: 0, x: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className={`flex items-center gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-md min-w-[320px] max-w-md ${bgColors[severity]}`}
+      // Animação vindo de CIMA para BAIXO (slide down)
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className={`
+        flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-sm 
+        min-w-75 max-w-md 
+        ${variantStyles[severity]}
+      `}
     >
-      {icons[severity]}
-      <p className="flex-1 text-sm font-medium text-foreground">{message}</p>
-      <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+      <div className="shrink-0">
+        {icons[severity]}
+      </div>
+      
+      <p className="flex-1 text-sm font-semibold leading-relaxed">
+        {message}
+      </p>
+
+      <button 
+        onClick={onClose} 
+        className="shrink-0 opacity-70 hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10"
+      >
         <X size={16} />
       </button>
     </motion.div>

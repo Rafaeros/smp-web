@@ -12,7 +12,7 @@ import { ColumnDef } from "@/src/core/components/shared/datatable/types";
 import { PageHeader } from "@/src/core/components/shared/PageHeader";
 import { Pagination } from "@/src/core/components/shared/Pagination";
 
-import { useToast } from "@/src/core/contexts/ToastContect";
+import { useToast } from "@/src/core/contexts/ToastContext";
 import {
   OrderFilters,
   orderService,
