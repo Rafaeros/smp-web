@@ -24,9 +24,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-br">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`
+          ${geistSans.variable} ${geistMono.variable} antialiased
+          min-h-screen
+          flex flex-col
+          overflow-x-hidden
+          md:h-screen md:overflow-hidden
+        `}
+        style={{
+          // Desktop: 100vh, overflow hidden; Mobile: min-h-screen, scroll liberado
+          height: undefined,
+        }}
       >
         <ToastProvider>
           {children}

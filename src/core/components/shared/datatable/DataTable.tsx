@@ -54,8 +54,20 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="overflow-x-auto">
+    <div
+      className="w-full rounded-xl border border-border bg-card shadow-sm"
+      style={{
+        // Desktop: fix height, scroll na tabela; Mobile: auto
+        height: undefined,
+        maxHeight: undefined,
+      }}
+    >
+      <div
+        className="overflow-x-auto md:overflow-x-auto md:overflow-y-auto"
+        style={{
+          maxHeight: '60vh',
+        }}
+      >
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
             <tr>
@@ -69,7 +81,6 @@ export function DataTable<T>({
                   </button>
                 </th>
               )}
-
               {columns.map((col, idx) => (
                 <th
                   key={idx}
@@ -110,7 +121,6 @@ export function DataTable<T>({
               data.map((item) => {
                 const id = getRowId(item);
                 const isSelected = isSelectionEnabled ? selectedIds.has(id) : false;
-
                 return (
                   <tr
                     key={id}
@@ -129,7 +139,6 @@ export function DataTable<T>({
                         </button>
                       </td>
                     )}
-
                     {columns.map((col, idx) => (
                       <td key={idx} className="px-4 py-3">
                         {col.cell ? col.cell(item) : (item as any)[col.accessorKey as string]}
