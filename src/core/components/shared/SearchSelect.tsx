@@ -42,11 +42,13 @@ export function AsyncSearchSelect<T>({
   const [hasSearched, setHasSearched] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (initialDisplayValue) {
       setQuery(initialDisplayValue);
     }
   }, [initialDisplayValue]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -59,6 +61,7 @@ export function AsyncSearchSelect<T>({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   useEffect(() => {
     if (!query.trim() || query === initialDisplayValue) {
       setResults([]);
@@ -117,7 +120,7 @@ export function AsyncSearchSelect<T>({
       <div className="relative group">
         <input
           type="text"
-          className="w-full bg-muted border border-transparent focus:bg-background focus:border-blue-500 rounded-lg py-3 pl-10 pr-10 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70"
+          className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg py-3 pl-10 pr-10 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70"
           placeholder={placeholder}
           value={query}
           onChange={(e) => {
@@ -130,7 +133,7 @@ export function AsyncSearchSelect<T>({
         />
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+            <Loader2 className="h-4 w-4 animate-spin text-brand-blue" />
           ) : (
             <Search className="h-4 w-4" />
           )}
@@ -148,25 +151,26 @@ export function AsyncSearchSelect<T>({
           </button>
         )}
       </div>
+
       {isOpen && query && !isLoading && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
           {results.length > 0 ? (
             <ul className="py-1">
               {results.map((item) => (
                 <li
                   key={getItemKey(item)}
                   onClick={() => handleSelectItem(item)}
-                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center justify-between group transition-colors border-b border-gray-50 last:border-0"
+                  className="px-4 py-3 hover:bg-muted cursor-pointer flex items-center justify-between group transition-colors border-b border-border/50 last:border-0"
                 >
                   {renderItem(item)}
-                  <Check className="h-4 w-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Check className="h-4 w-4 text-brand-purple opacity-0 group-hover:opacity-100 transition-opacity" />
                 </li>
               ))}
             </ul>
           ) : (
             hasSearched && (
               <div className="p-4 flex flex-col items-center justify-center text-center">
-                <div className="flex items-center gap-2 text-amber-600 mb-2">
+                <div className="flex items-center gap-2 text-amber-600 mb-3">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-xs font-medium">{fallbackMessage}</span>
                 </div>
@@ -175,14 +179,26 @@ export function AsyncSearchSelect<T>({
                   <button
                     onClick={handleFallbackAction}
                     disabled={isFallbackLoading}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition-colors disabled:opacity-70 disabled:cursor-not-allowed mt-1"
+                    className="
+                      relative w-full font-bold rounded-xl transition-all duration-200 
+                      active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed 
+                      flex items-center justify-center gap-2
+                      py-2.5 px-4 text-xs
+                      text-white bg-linear-to-r from-brand-purple to-brand-blue 
+                      shadow-lg shadow-brand-blue/20 hover:opacity-90 hover:scale-[1.01]
+                    "
                   >
                     {isFallbackLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <>
+                        <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <span>PROCESSANDO...</span>
+                      </>
                     ) : (
-                      <ChevronDown className="h-3 w-3" />
+                      <>
+                        <ChevronDown className="h-3 w-3" />
+                        {fallbackLabel}
+                      </>
                     )}
-                    {isFallbackLoading ? "Processando..." : fallbackLabel}
                   </button>
                 )}
               </div>
