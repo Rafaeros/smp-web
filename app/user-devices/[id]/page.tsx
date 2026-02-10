@@ -60,6 +60,8 @@ export default function DeviceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [device, setDevice] = useState<UserDeviceDetails | null>(null);
+  
+  // Estado para controlar o texto inicial do input de busca (o código da OP)
   const [initialOrderCode, setInitialOrderCode] = useState("");
 
   const [formData, setFormData] = useState<DeviceFormData>({
@@ -77,14 +79,21 @@ export default function DeviceDetailsPage() {
     try {
       const data = await userDeviceService.getDetails(id);
       setDevice(data);
+      
       setFormData({
         name: data.name,
         stage: data.stage,
-        orderId: null,
+        orderId: null, // Começa null para não sobrescrever se o usuário não mexer
       });
 
-      if (data.currentOrder) {
-        setInitialOrderCode(data.currentOrder);
+      // CORREÇÃO AQUI:
+      // O backend agora envia 'code' no DTO.
+      // Usamos (data as any).code caso a interface TS ainda não tenha sido atualizada.
+      // Se já atualizou o types.ts, pode usar data.code direto.
+      const backendCode = (data as any).code || data.currentOrder;
+      
+      if (backendCode) {
+        setInitialOrderCode(backendCode);
       }
     } catch (error) {
       console.error("Erro ao carregar", error);
@@ -114,7 +123,7 @@ export default function DeviceDetailsPage() {
       };
 
       await userDeviceService.update(id, payload);
-      await loadData();
+      await loadData(); // Recarrega para confirmar os dados salvos
       toast.success("Configurações atualizadas com sucesso!");
     } catch (error) {
       console.error(error);
@@ -247,6 +256,7 @@ export default function DeviceDetailsPage() {
                   <FileText size={12} /> Ordem de Produção (OP)
                 </label>
 
+                {/* Componente de Busca agora recebe o valor inicial vindo do Backend */}
                 <OrderSearchInput
                   onOrderSelect={handleOrderSelect}
                   initialDisplayValue={initialOrderCode}
