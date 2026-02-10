@@ -15,8 +15,8 @@ export function OrderSearchInput({
     const response = await orderService.getSummary(query);
     return response.content;
   };
-  const syncOrder = async (query: string) => {
-    await orderService.syncFromErp(query);
+const syncOrder = async (query: string) => {
+    await orderService.syncFromErp({ code: query });
   };
 
   return (

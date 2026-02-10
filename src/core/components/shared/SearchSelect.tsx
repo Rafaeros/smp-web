@@ -7,6 +7,8 @@ import {
   X,
 } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
+// 1. Importe o hook do seu Toast
+import { useToast } from "@/src/core/contexts/ToastContext";
 
 interface AsyncSearchSelectProps<T> {
   fetcher: (query: string) => Promise<T[]>;
@@ -33,6 +35,9 @@ export function AsyncSearchSelect<T>({
   fallbackLabel = "Criar Novo",
   fallbackMessage = "Nenhum resultado encontrado.",
 }: AsyncSearchSelectProps<T>) {
+  // 2. Inicialize o hook
+  const { showToast } = useToast();
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<T[]>([]);
 
@@ -101,15 +106,29 @@ export function AsyncSearchSelect<T>({
 
     setIsFallbackLoading(true);
     try {
+      // Tenta sincronizar
       await onFallback(query);
+
+      // Se deu certo (não caiu no catch), busca novamente para atualizar a lista
       const newData = await fetcher(query);
+
       if (newData.length > 0) {
+        // Opcional: Seleciona automaticamente o primeiro item encontrado
         handleSelectItem(newData[0]);
+        showToast("Sincronizado com sucesso!", "SUCCESS");
       } else {
         setIsOpen(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+
+      // 3. Captura a mensagem do Backend (Spring Boot Exception)
+      // O Spring geralmente retorna: { message: "Texto do erro", ... }
+      const backendMessage = error.response?.data?.message;
+      const fallbackMsg = "Erro ao sincronizar. Verifique se a OP existe.";
+
+      // Exibe o Toast de Erro
+      showToast(backendMessage || fallbackMsg, "ERROR");
     } finally {
       setIsFallbackLoading(false);
     }

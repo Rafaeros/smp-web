@@ -60,7 +60,7 @@ export default function DeviceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [device, setDevice] = useState<UserDeviceDetails | null>(null);
-  
+
   // Estado para controlar o texto inicial do input de busca (o código da OP)
   const [initialOrderCode, setInitialOrderCode] = useState("");
 
@@ -79,7 +79,7 @@ export default function DeviceDetailsPage() {
     try {
       const data = await userDeviceService.getDetails(id);
       setDevice(data);
-      
+
       setFormData({
         name: data.name,
         stage: data.stage,
@@ -91,7 +91,7 @@ export default function DeviceDetailsPage() {
       // Usamos (data as any).code caso a interface TS ainda não tenha sido atualizada.
       // Se já atualizou o types.ts, pode usar data.code direto.
       const backendCode = (data as any).code || data.currentOrder;
-      
+
       if (backendCode) {
         setInitialOrderCode(backendCode);
       }
@@ -200,7 +200,9 @@ export default function DeviceDetailsPage() {
                 VÍNCULO: #{device.id}
               </span>
               <span>•</span>
-              <span className="font-mono text-xs">MAC: {device.macAddress}</span>
+              <span className="font-mono text-xs">
+                MAC: {device.macAddress}
+              </span>
             </p>
           </div>
         </div>
@@ -275,7 +277,7 @@ export default function DeviceDetailsPage() {
                       const val = e.target.value;
                       handleChange(
                         "stage",
-                        val === "" ? undefined : (val as ProcessStage)
+                        val === "" ? undefined : (val as ProcessStage),
                       );
                     }}
                   >
@@ -358,6 +360,7 @@ export default function DeviceDetailsPage() {
                   Último Sinal
                 </span>
                 <span className="text-xs text-foreground font-medium bg-green-500/10 dark:text-green-400 px-2 py-1 rounded">
+                  {new Date(device.lastSeen).toLocaleDateString()} |{" "}
                   {new Date(device.lastSeen).toLocaleTimeString()}
                 </span>
               </li>
