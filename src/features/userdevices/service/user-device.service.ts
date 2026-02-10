@@ -3,7 +3,6 @@ import { UserDeviceMap, DeviceBindingDTO, UserDeviceDetails, UpdateUserDeviceDTO
 
 export const userDeviceService = {
   getMyMap: async (): Promise<UserDeviceMap[]> => {
-    // O TypeScript acha que é AxiosResponse, mas nós sabemos que é UserDeviceMap[]
     const response = await api.get('/user-devices/map');
     return response as unknown as UserDeviceMap[];
   },
