@@ -2,6 +2,7 @@
 
 import { Box, Calendar, Factory, Filter, Search, User, X } from "lucide-react";
 import { useState } from "react";
+import { ClientSearchInput } from "../../clients/components/ClientSearchinput";
 import { OrderFilters } from "../services/order.service";
 import { OrderStatus } from "../types/orders";
 
@@ -95,7 +96,6 @@ export function OrderListFilters({
             </div>
 
             <form onSubmit={handleApply} className="space-y-4">
-              {/* Código OP */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
                   <Factory size={12} /> Código OP
@@ -112,7 +112,6 @@ export function OrderListFilters({
                 />
               </div>
 
-              {/* Produto */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
                   <Box size={12} /> Cód. Produto
@@ -131,26 +130,21 @@ export function OrderListFilters({
                 />
               </div>
 
-              {/* ID Cliente (Texto Simples por enquanto) */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                  <User size={12} /> ID Cliente
+                  <User size={12} /> Cliente
                 </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 55"
-                  className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
-                  value={localFilters.clientId}
-                  onChange={(e) =>
+                <ClientSearchInput
+                  onClientSelect={(client) =>
                     setLocalFilters({
                       ...localFilters,
-                      clientId: e.target.value,
+                      clientId: client.id.toString(),
                     })
                   }
+                  initialDisplayValue={localFilters.clientId} // Nota: Idealmente aqui passaria o Nome se tivesse no state
                 />
               </div>
 
-              {/* Status */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">
                   Status
@@ -171,39 +165,45 @@ export function OrderListFilters({
                 </select>
               </div>
 
-              {/* Datas de Entrega */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                    <Calendar size={12} /> De
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-xs focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
-                    value={localFilters.startDeliveryDate}
-                    onChange={(e) =>
-                      setLocalFilters({
-                        ...localFilters,
-                        startDeliveryDate: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                    <Calendar size={12} /> Até
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-xs focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
-                    value={localFilters.endDeliveryDate}
-                    onChange={(e) =>
-                      setLocalFilters({
-                        ...localFilters,
-                        endDeliveryDate: e.target.value,
-                      })
-                    }
-                  />
+              <div className="pt-2 border-t border-border">
+                <label className="text-xs font-bold text-foreground mb-2 block items-center gap-1">
+                  <Calendar size={12} className="text-brand-purple" />
+                  Período de Entrega
+                </label>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">
+                      De (Início)
+                    </span>
+                    <input
+                      type="date"
+                      className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-xs focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
+                      value={localFilters.startDeliveryDate}
+                      onChange={(e) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          startDeliveryDate: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">
+                      Até (Fim)
+                    </span>
+                    <input
+                      type="date"
+                      className="w-full p-2.5 rounded-lg border border-border bg-muted/30 text-xs focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
+                      value={localFilters.endDeliveryDate}
+                      onChange={(e) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          endDeliveryDate: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
