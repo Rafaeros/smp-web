@@ -60,8 +60,6 @@ export default function DeviceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [device, setDevice] = useState<UserDeviceDetails | null>(null);
-
-  // Estado para controlar o texto inicial do input de busca (o código da OP)
   const [initialOrderCode, setInitialOrderCode] = useState("");
 
   const [formData, setFormData] = useState<DeviceFormData>({
@@ -83,13 +81,8 @@ export default function DeviceDetailsPage() {
       setFormData({
         name: data.name,
         stage: data.stage,
-        orderId: null, // Começa null para não sobrescrever se o usuário não mexer
+        orderId: null,
       });
-
-      // CORREÇÃO AQUI:
-      // O backend agora envia 'code' no DTO.
-      // Usamos (data as any).code caso a interface TS ainda não tenha sido atualizada.
-      // Se já atualizou o types.ts, pode usar data.code direto.
       const backendCode = (data as any).code || data.currentOrder;
 
       if (backendCode) {
@@ -257,8 +250,6 @@ export default function DeviceDetailsPage() {
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <FileText size={12} /> Ordem de Produção (OP)
                 </label>
-
-                {/* Componente de Busca agora recebe o valor inicial vindo do Backend */}
                 <OrderSearchInput
                   onOrderSelect={handleOrderSelect}
                   initialDisplayValue={initialOrderCode}

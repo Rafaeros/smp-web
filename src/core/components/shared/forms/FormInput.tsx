@@ -4,7 +4,7 @@ import { InputHTMLAttributes, useState } from "react";
 interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  startIcon?: LucideIcon; // Recebe o componente do ícone (ex: User, Lock)
+  startIcon?: LucideIcon;
 }
 
 export function FormInput({ 

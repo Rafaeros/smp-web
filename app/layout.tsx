@@ -28,13 +28,12 @@ export default function RootLayout({
       <body
         className={`
           ${geistSans.variable} ${geistMono.variable} antialiased
-          min-h-screen
+          h-screen
           flex flex-col
           overflow-x-hidden
           md:h-screen md:overflow-hidden
         `}
         style={{
-          // Desktop: 100vh, overflow hidden; Mobile: min-h-screen, scroll liberado
           height: undefined,
         }}
       >

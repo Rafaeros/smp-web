@@ -126,39 +126,44 @@ export default function ProductList() {
   const activeFiltersCount =
     (activeFilters.code ? 1 : 0) + (activeFilters.description ? 1 : 0);
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col font-sans text-foreground">
-      <PageHeader
-        title="Catálogo de Produtos"
-        subtitle="Gerenciamento de produtos"
-        icon={Package}
-        onNew={() => router.push("/products/new")}
-        onExport={() => showToast("Exportando CSV...", "INFO")}
-        filterComponent={
-          <ProductListFilters
-            onFilter={setActiveFilters}
-            activeFiltersCount={activeFiltersCount}
+  return (  
+    <div className="flex flex-col h-full w-full p-4 md:p-6 gap-4">
+      <div className="shrink-0">
+        <PageHeader
+          title="Catálogo de Produtos"
+          subtitle="Gerenciamento de produtos"
+          icon={Package}
+          onNew={() => router.push("/products/new")}
+          onExport={() => showToast("Exportando CSV...", "INFO")}
+          filterComponent={
+            <ProductListFilters
+              onFilter={setActiveFilters}
+              activeFiltersCount={activeFiltersCount}
+            />
+          }
+        />
+      </div>
+      <div className="flex-1 flex flex-col min-h-0 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="shrink-0 border-b border-border p-2 bg-muted/20">
+          <Pagination
+            currentPage={page}
+            totalItems={totalItems}
+            pageSize={10}
+            onPageChange={setPage}
           />
-        }
-      />
-
-      <main className="pb-10">
-        <Pagination
-          currentPage={page}
-          totalItems={totalItems}
-          pageSize={10}
-          onPageChange={setPage}
-        />
-
-        <DataTable
-          data={products}
-          columns={columns}
-          getRowId={(p) => p.id}
-          loading={loading}
-          currentSort={sort}
-          onSort={handleSort}
-        />
-      </main>
+        </div>
+        <div className="flex-1 min-h-0 relative">
+          <DataTable
+            data={products}
+            columns={columns}
+            getRowId={(p) => p.id}
+            loading={loading}
+            currentSort={sort}
+            onSort={handleSort}
+          />
+        </div>
+        
+      </div>
     </div>
   );
 }

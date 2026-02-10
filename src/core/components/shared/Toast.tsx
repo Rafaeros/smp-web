@@ -20,7 +20,6 @@ const icons = {
   SUCCESS: <CheckCircle size={20} />,
 };
 
-// Estilos baseados na severidade (Fundo Colorido + Texto Escuro/Contraste)
 const variantStyles = {
   SUCCESS: "bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-900/90 dark:border-emerald-800 dark:text-white",
   ERROR: "bg-red-100 border-red-200 text-red-800 dark:bg-red-900/90 dark:border-red-800 dark:text-white",
@@ -36,7 +35,6 @@ export function Toast({ message, severity, onClose, duration = 4000 }: ToastProp
 
   return (
     <motion.div
-      // Animação vindo de CIMA para BAIXO (slide down)
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}

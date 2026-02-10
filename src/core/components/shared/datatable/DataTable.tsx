@@ -57,7 +57,6 @@ export function DataTable<T>({
     <div
       className="w-full rounded-xl border border-border bg-card shadow-sm"
       style={{
-        // Desktop: fix height, scroll na tabela; Mobile: auto
         height: undefined,
         maxHeight: undefined,
       }}
@@ -68,8 +67,17 @@ export function DataTable<T>({
           maxHeight: '60vh',
         }}
       >
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
+        <table className="w-full text-sm text-left border-collapse" style={{ borderSpacing: 0 }}>
+          <thead
+            className="text-xs text-muted-foreground uppercase border-b border-border"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'var(--muted)',
+              backdropFilter: 'blur(2px)',
+            }}
+          >
             <tr>
               {isSelectionEnabled && (
                 <th className="p-4 w-12 text-center">

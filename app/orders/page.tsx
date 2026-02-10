@@ -1,5 +1,5 @@
-import { Metadata } from "next";
 import { OrderList } from "@/src/features/orders/components/OrderList";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Ordens de Produção | SMP",
@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function OrdersPage() {
-  return (
-    <div className="p-6">
-      <OrderList />
-    </div>
-  );
-}
+  return <OrderList />;
+} 

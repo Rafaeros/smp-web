@@ -48,6 +48,7 @@ export default function LogList() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchLogs();
   }, [page, activeFilters, sort]);
@@ -163,20 +164,17 @@ export default function LogList() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-background font-sans text-foreground">
-      <div className="shrink-0 p-6 pb-0">
+    <div className="flex flex-col h-full w-full p-4 md:p-6 gap-4">
+      <div className="shrink-0">
         <PageHeader
           title="Histórico de Logs"
           subtitle="Registros detalhados de produção"
           icon={History}
           onExport={() => showToast("Exportando CSV...", "INFO")}
-          // Você pode adicionar um LogListFilters aqui similar ao OrderListFilters
-          // filterComponent={<LogListFilters onFilter={setActiveFilters} ... />}
         />
       </div>
-
-      <main className="flex-1 flex flex-col min-h-0 p-6 pt-4 space-y-4">
-        <div className="shrink-0">
+      <div className="flex-1 flex flex-col min-h-0 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="shrink-0 border-b border-border p-2 bg-muted/20">
           <Pagination
             currentPage={page}
             totalItems={totalItems}
@@ -184,8 +182,7 @@ export default function LogList() {
             onPageChange={setPage}
           />
         </div>
-
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 relative">
           <DataTable
             data={logs}
             columns={columns}
@@ -195,7 +192,7 @@ export default function LogList() {
             onSort={handleSort}
           />
         </div>
-      </main>
+      </div>
     </div>
   );
 }

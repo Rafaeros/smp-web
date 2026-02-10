@@ -225,37 +225,41 @@ export function OrderList() {
     Object.values(activeFilters).filter(Boolean).length;
 
   return (
-    <div className="flex flex-col h-full">
-      <PageHeader
-        title="Ordens de Produção"
-        subtitle="Controle de OPs e acompanhamento de fábrica"
-        icon={Factory}
-        onNew={() => router.push("/orders/new")}
-        onExport={() => showToast("Exportando dados...", "INFO")}
-        filterComponent={
-          <OrderListFilters
-            onFilter={setActiveFilters}
-            activeFiltersCount={activeFiltersCount}
+    <div className="flex flex-col h-full w-full p-4 md:p-6 gap-4">
+      <div className="shrink-0">
+        <PageHeader
+          title="Ordens de Produção"
+          subtitle="Controle de OPs e acompanhamento de fábrica"
+          icon={Factory}
+          onNew={() => router.push("/orders/new")}
+          onExport={() => showToast("Exportando dados...", "INFO")}
+          filterComponent={
+            <OrderListFilters
+              onFilter={setActiveFilters}
+              activeFiltersCount={activeFiltersCount}
+            />
+          }
+        />
+      </div>
+      <div className="flex-1 flex flex-col min-h-0 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="shrink-0 border-b border-border p-2 bg-muted/20">
+          <Pagination
+            currentPage={page}
+            totalItems={totalItems}
+            pageSize={10}
+            onPageChange={setPage}
           />
-        }
-      />
-
-      <div className="pb-10">
-        <Pagination
-          currentPage={page}
-          totalItems={totalItems}
-          pageSize={10}
-          onPageChange={setPage}
-        />
-
-        <DataTable
-          data={orders}
-          columns={columns}
-          getRowId={(o) => o.id}
-          loading={loading}
-          currentSort={sort}
-          onSort={handleSort}
-        />
+        </div>
+        <div className="flex-1 min-h-0 relative">
+          <DataTable
+            data={orders}
+            columns={columns}
+            getRowId={(o) => o.id}
+            loading={loading}
+            currentSort={sort}
+            onSort={handleSort}
+          />
+        </div>
       </div>
     </div>
   );
