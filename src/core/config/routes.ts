@@ -13,7 +13,6 @@ export const APP_ROUTES = {
   },
   logs: {
     list: "/logs",
-    view: (id: number | string) => `/logs/${id}`,
   },
   products: {
     list: "/products",

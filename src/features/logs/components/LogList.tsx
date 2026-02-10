@@ -17,7 +17,7 @@ import {
   Timer,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LogFilters, logService } from "../services/log.service";
 import { Log } from "../types/logs";
 

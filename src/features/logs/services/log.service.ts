@@ -2,6 +2,7 @@ import { api } from "@/src/core/api/client";
 import { SortState } from "@/src/core/components/shared/datatable/DataTable";
 import { Page } from "@/src/core/types/pagination";
 import { Log } from "../types/logs";
+import { APP_ROUTES } from "@/src/core/config/routes";
 
 export interface LogFilters {
   orderId?: string;
@@ -33,7 +34,7 @@ export const logService = {
       params.sort = "createdAt,desc";
     }
 
-    const response = await api.get("/Logs", { params });
+    const response = await api.get(APP_ROUTES.logs.list, { params });
     return response as unknown as Page<Log>;
   },
 };
