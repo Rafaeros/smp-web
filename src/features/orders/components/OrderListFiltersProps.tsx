@@ -2,9 +2,9 @@
 
 import { Box, Calendar, Factory, Filter, Search, User, X } from "lucide-react";
 import { useState } from "react";
-import { ClientSearchInput } from "../../clients/components/ClientSearchinput";
 import { OrderFilters } from "../services/order.service";
 import { OrderStatus } from "../types/orders";
+import { ClientSearchInput } from "../../clients/components/ClientSearchinput";
 
 interface OrderListFiltersProps {
   onFilter: (filters: OrderFilters) => void;
@@ -22,7 +22,6 @@ export function OrderListFilters({
   activeFiltersCount,
 }: OrderListFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-
   const [localFilters, setLocalFilters] = useState<OrderFilters>({
     code: "",
     productCode: "",
@@ -31,6 +30,7 @@ export function OrderListFilters({
     startDeliveryDate: "",
     endDeliveryDate: "",
   });
+  const [clientDisplayName, setClientDisplayName] = useState("");
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +48,7 @@ export function OrderListFilters({
       endDeliveryDate: "",
     };
     setLocalFilters(cleanState);
+    setClientDisplayName("");
     onFilter(cleanState);
     setIsOpen(false);
   };
@@ -129,22 +130,24 @@ export function OrderListFilters({
                   }
                 />
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
                   <User size={12} /> Cliente
                 </label>
+                
                 <ClientSearchInput
-                  onClientSelect={(client) =>
+                  onClientSelect={(client) => {
                     setLocalFilters({
                       ...localFilters,
                       clientId: client.id.toString(),
-                    })
-                  }
-                  initialDisplayValue={localFilters.clientId} // Nota: Idealmente aqui passaria o Nome se tivesse no state
+                    });
+                    setClientDisplayName(client.name);
+                  }}
+                  initialDisplayValue={clientDisplayName} 
                 />
               </div>
 
+              {/* Status */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">
                   Status
@@ -164,7 +167,6 @@ export function OrderListFilters({
                   ))}
                 </select>
               </div>
-
               <div className="pt-2 border-t border-border">
                 <label className="text-xs font-bold text-foreground mb-2 block items-center gap-1">
                   <Calendar size={12} className="text-brand-purple" />
