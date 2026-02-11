@@ -1,16 +1,32 @@
 "use client";
 
-import { Box, Calendar, Edit, Eye, Factory, Trash2, User } from "lucide-react";
+import {
+  DataTable,
+  SortState,
+} from "@/src/core/components/data-display/datatable/DataTable";
+import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
+import { Pagination } from "@/src/core/components/data-display/Pagination";
+import { PageHeader } from "@/src/core/components/layouts/PageHeader";
+import { useToast } from "@/src/core/contexts/ToastContext";
+import {
+  OrderFilters,
+  orderService,
+} from "@/src/features/orders/services/order.service";
+import {
+  Box,
+  Calendar,
+  Copy,
+  Edit,
+  Eye,
+  Factory,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DataTable, SortState } from "@/src/core/components/data-display/datatable/DataTable";
-import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
-import { PageHeader } from "@/src/core/components/layouts/PageHeader";
-import { Pagination } from "@/src/core/components/data-display/Pagination";
-import { useToast } from "@/src/core/contexts/ToastContext";
-import { OrderFilters, orderService } from "@/src/features/orders/services/order.service";
 import { Order, OrderStatus } from "../types/orders";
 import { OrderListFilters } from "./OrderListFiltersProps";
+import { copyToClipboard } from "@/src/core/lib/utils";
 
 const getStatusBadge = (status: OrderStatus) => {
   const styles: Record<string, string> = {
@@ -18,7 +34,8 @@ const getStatusBadge = (status: OrderStatus) => {
     [OrderStatus.STARTED]: "bg-blue-50 text-brand-blue border-blue-200",
     [OrderStatus.FINISHED]: "bg-green-50 text-green-700 border-green-200",
     [OrderStatus.STOPPED]: "bg-red-50 text-red-700 border-red-200",
-    [OrderStatus.CANCELED]: "bg-gray-50 text-gray-400 border-gray-200 line-through",
+    [OrderStatus.CANCELED]:
+      "bg-gray-50 text-gray-400 border-gray-200 line-through",
   };
 
   const labels: Record<string, string> = {
@@ -30,7 +47,11 @@ const getStatusBadge = (status: OrderStatus) => {
   };
 
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${styles[status] || "bg-gray-50 border-gray-200 text-gray-500"}`}>
+    <span
+      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+        styles[status] || "bg-gray-50 border-gray-200 text-gray-500"
+      }`}
+    >
       {labels[status] || status}
     </span>
   );
@@ -69,9 +90,11 @@ export function OrderList() {
   }, [page, activeFilters, sort]);
 
   const handleSort = (field: string) => {
-    setSort((prev) => (prev && prev.field === field && prev.direction === "asc" 
-      ? { field, direction: "desc" } 
-      : { field, direction: "asc" }));
+    setSort((prev) =>
+      prev && prev.field === field && prev.direction === "asc"
+        ? { field, direction: "desc" }
+        : { field, direction: "asc" },
+    );
   };
 
   const handleDelete = async (id: number) => {
@@ -92,11 +115,24 @@ export function OrderList() {
       accessorKey: "code",
       cell: (item) => (
         <div
-          className="flex items-center gap-2 group cursor-pointer w-fit"
-          onClick={() => router.push(`/orders/${item.id}`)}
+          className="flex items-center gap-2 group cursor-pointer w-fit active:scale-95 transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            copyToClipboard(item.code);
+            showToast(
+              "Código copiado para a área de transferência!",
+              "SUCCESS",
+            );
+          }}
+          title="Clique para copiar o código"
         >
-          <div className="flex items-center gap-2 font-mono text-xs bg-brand-purple/5 text-brand-purple px-2 py-1 rounded border border-brand-purple/20 font-bold group-hover:bg-brand-purple group-hover:text-white transition-colors">
-            <Factory size={12} />
+          <div
+            className="flex items-center gap-2 font-mono text-xs px-2 py-1 rounded font-bold transition-all duration-300
+            bg-brand-purple/5 text-brand-purple border border-brand-purple/20
+            group-hover:bg-linear-to-r group-hover:from-brand-purple group-hover:to-brand-blue group-hover:text-white group-hover:border-transparent group-hover:shadow-md"
+          >
+            <Factory size={12} className="group-hover:hidden" />
+            <Copy size={12} className="hidden group-hover:block" />
             {item.code}
           </div>
         </div>
@@ -120,7 +156,10 @@ export function OrderList() {
       header: "Cliente",
       accessorKey: "clientName",
       cell: (item) => (
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground truncate max-w-50" title={item.clientName}>
+        <div
+          className="flex items-center gap-1.5 text-sm text-muted-foreground truncate max-w-50"
+          title={item.clientName}
+        >
           <User size={12} />
           {item.clientName || "N/A"}
         </div>
@@ -130,15 +169,23 @@ export function OrderList() {
       header: "Progresso",
       accessorKey: "producedQuantity",
       cell: (item) => {
-        const progress = item.totalQuantity > 0 ? Math.min((item.producedQuantity / item.totalQuantity) * 100, 100) : 0;
+        const progress =
+          item.totalQuantity > 0
+            ? Math.min((item.producedQuantity / item.totalQuantity) * 100, 100)
+            : 0;
         return (
           <div className="w-full max-w-30">
             <div className="flex justify-between text-[10px] mb-1 font-medium">
-              <span className="text-muted-foreground">{item.producedQuantity}/{item.totalQuantity}</span>
+              <span className="text-muted-foreground">
+                {item.producedQuantity}/{item.totalQuantity}
+              </span>
               <span className="text-brand-purple">{progress.toFixed(0)}%</span>
             </div>
             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-brand-purple transition-all duration-500" style={{ width: `${progress}%` }} />
+              <div
+                className="h-full bg-linear-to-r from-brand-purple to-brand-blue transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         );
@@ -156,7 +203,9 @@ export function OrderList() {
       cell: (item) => (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md border border-border w-fit whitespace-nowrap">
           <Calendar size={12} />
-          {item.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString("pt-BR") : "--"}
+          {item.deliveryDate
+            ? new Date(item.deliveryDate).toLocaleDateString("pt-BR")
+            : "--"}
         </div>
       ),
       className: "w-32",
@@ -166,13 +215,25 @@ export function OrderList() {
       className: "w-24 text-right",
       cell: (item) => (
         <div className="flex items-center justify-end gap-1">
-          <button onClick={() => router.push(`/orders/${item.id}`)} className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors" title="Detalhes">
+          <button
+            onClick={() => router.push(`/orders/${item.id}`)}
+            className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors"
+            title="Detalhes"
+          >
             <Eye size={16} />
           </button>
-          <button onClick={() => router.push(`/orders/${item.id}/edit`)} className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors" title="Editar">
+          <button
+            onClick={() => router.push(`/orders/${item.id}/edit`)}
+            className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+            title="Editar"
+          >
             <Edit size={16} />
           </button>
-          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Excluir">
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Excluir"
+          >
             <Trash2 size={16} />
           </button>
         </div>
@@ -180,10 +241,11 @@ export function OrderList() {
     },
   ];
 
-  const activeFiltersCount = Object.values(activeFilters).filter(Boolean).length;
+  const activeFiltersCount =
+    Object.values(activeFilters).filter(Boolean).length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
+    <div className="w-full p-4 md:p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
       <div className="shrink-0">
         <PageHeader
           title="Ordens de Produção"
@@ -200,11 +262,13 @@ export function OrderList() {
         />
       </div>
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-border bg-muted/30 flex justify-between items-center">
-            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Listagem</span>
-            <span className="text-[10px] font-bold bg-white border border-border px-2 py-0.5 rounded text-muted-foreground shadow-sm">
-                {totalItems} OPs Encontradas
-            </span>
+        <div className="p-4 bg-muted/30 flex justify-between items-center">
+          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
+            Listagem
+          </span>
+          <span className="text-[10px] font-bold bg-white border border-border px-2 py-0.5 rounded text-muted-foreground shadow-sm">
+            {totalItems} OPs Encontradas
+          </span>
         </div>
         <div className="overflow-x-auto">
           <DataTable

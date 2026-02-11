@@ -116,7 +116,7 @@ export default function DeviceDetailsPage() {
       };
 
       await userDeviceService.update(id, payload);
-      await loadData(); // Recarrega para confirmar os dados salvos
+      await loadData();
       toast.success("Configurações atualizadas com sucesso!");
     } catch (error) {
       console.error(error);

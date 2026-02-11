@@ -2,10 +2,10 @@
 
 import {
   ArrowDown,
-  ArrowUp,
   ArrowDownUp,
-  Loader2,
+  ArrowUp,
   CheckSquare,
+  Loader2,
   Square,
 } from "lucide-react";
 import { ColumnDef } from "./types";
@@ -34,14 +34,16 @@ export function DataTable<T>({
   getRowId,
   onSort,
   currentSort,
-  selectedIds,    
-  onSelectAll,  
-  onSelectRow,    
+  selectedIds,
+  onSelectAll,
+  onSelectRow,
 }: DataTableProps<T>) {
-  
   const isSelectionEnabled = selectedIds && onSelectAll && onSelectRow;
 
-  const allSelected = isSelectionEnabled && data.length > 0 && data.every((item) => selectedIds.has(getRowId(item)));
+  const allSelected =
+    isSelectionEnabled &&
+    data.length > 0 &&
+    data.every((item) => selectedIds.has(getRowId(item)));
 
   const getSortIcon = (columnKey?: string) => {
     if (!columnKey || !currentSort || currentSort.field !== columnKey) {
@@ -64,18 +66,21 @@ export function DataTable<T>({
       <div
         className="overflow-x-auto md:overflow-x-auto md:overflow-y-auto"
         style={{
-          maxHeight: '60vh',
+          maxHeight: "60vh",
         }}
       >
-        <table className="w-full text-sm text-left border-collapse" style={{ borderSpacing: 0 }}>
+        <table
+          className="w-full text-sm text-left border-collapse"
+          style={{ borderSpacing: 0 }}
+        >
           <thead
             className="text-xs text-muted-foreground uppercase border-b border-border"
             style={{
-              position: 'sticky',
+              position: "sticky",
               top: 0,
               zIndex: 10,
-              background: 'var(--muted)',
-              backdropFilter: 'blur(2px)',
+              background: "var(--muted)",
+              backdropFilter: "blur(2px)",
             }}
           >
             <tr>
@@ -85,19 +90,27 @@ export function DataTable<T>({
                     onClick={() => onSelectAll(!allSelected)}
                     className="text-muted-foreground hover:text-brand-purple transition-colors"
                   >
-                    {allSelected ? <CheckSquare size={18} className="text-brand-purple" /> : <Square size={18} />}
+                    {allSelected ? (
+                      <CheckSquare size={18} className="text-brand-purple" />
+                    ) : (
+                      <Square size={18} />
+                    )}
                   </button>
                 </th>
               )}
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`px-4 py-3 font-bold tracking-wider ${col.className || ""}`}
+                  className={`px-4 py-3 font-bold tracking-wider ${
+                    col.className || ""
+                  }`}
                 >
                   {col.accessorKey ? (
                     <div
                       className="flex items-center gap-2 cursor-pointer hover:text-foreground select-none group"
-                      onClick={() => onSort && onSort(col.accessorKey as string)}
+                      onClick={() =>
+                        onSort && onSort(col.accessorKey as string)
+                      }
                     >
                       {col.header}
                       {getSortIcon(col.accessorKey as string)}
@@ -109,10 +122,13 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/50">
+          <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length + (isSelectionEnabled ? 1 : 0)} className="p-12 text-center">
+                <td
+                  colSpan={columns.length + (isSelectionEnabled ? 1 : 0)}
+                  className="p-12 text-center"
+                >
                   <Loader2 className="animate-spin w-8 h-8 text-brand-purple mx-auto" />
                   <p className="mt-2 text-muted-foreground text-xs font-medium uppercase tracking-widest">
                     Carregando dados...
@@ -121,35 +137,62 @@ export function DataTable<T>({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + (isSelectionEnabled ? 1 : 0)} className="p-16 text-center text-muted-foreground">
+                <td
+                  colSpan={columns.length + (isSelectionEnabled ? 1 : 0)}
+                  className="p-16 text-center text-muted-foreground"
+                >
                   <p>Nenhum registro encontrado.</p>
                 </td>
               </tr>
             ) : (
               data.map((item) => {
                 const id = getRowId(item);
-                const isSelected = isSelectionEnabled ? selectedIds.has(id) : false;
+                const isSelected = isSelectionEnabled
+                  ? selectedIds.has(id)
+                  : false;
                 return (
                   <tr
                     key={id}
-                    onClick={() => isSelectionEnabled && onSelectRow && onSelectRow(id)}
+                    onClick={() =>
+                      isSelectionEnabled && onSelectRow && onSelectRow(id)
+                    }
+                    // 2. AQUI ESTÁ A MÁGICA:
                     className={`
-                      group transition-all duration-200
+                      group transition-all duration-200 border-b border-border/40 last:border-0
                       ${isSelectionEnabled && "cursor-pointer"} 
-                      ${isSelected ? "bg-brand-purple/5" : "hover:bg-muted/30"}
+                      
+                      ${
+                        isSelected
+                          ? "bg-brand-purple/5 border-brand-purple/20"
+                          : "hover:bg-muted/50 hover:border-brand-purple/20" // Hover deixa fundo mais visível e borda colorida
+                      }
                     `}
                   >
                     {isSelectionEnabled && (
                       <td className="p-4 text-center relative">
-                        {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-purple" />}
-                        <button className={`transition-colors ${isSelected ? "text-brand-purple" : "text-muted-foreground"}`}>
-                          {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                        {isSelected && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-purple" />
+                        )}
+                        <button
+                          className={`transition-colors ${
+                            isSelected
+                              ? "text-brand-purple"
+                              : "text-muted-foreground group-hover:text-foreground"
+                          }`}
+                        >
+                          {isSelected ? (
+                            <CheckSquare size={18} />
+                          ) : (
+                            <Square size={18} />
+                          )}
                         </button>
                       </td>
                     )}
                     {columns.map((col, idx) => (
                       <td key={idx} className="px-4 py-3">
-                        {col.cell ? col.cell(item) : (item as any)[col.accessorKey as string]}
+                        {col.cell
+                          ? col.cell(item)
+                          : (item as any)[col.accessorKey as string]}
                       </td>
                     ))}
                   </tr>

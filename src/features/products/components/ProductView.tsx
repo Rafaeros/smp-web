@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+// Widgets e Componentes
 import {
   DataTable,
   SortState,
@@ -19,18 +21,14 @@ import {
 import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
 import { Pagination } from "@/src/core/components/data-display/Pagination";
 import { StatCard } from "@/src/core/components/data-display/StatCard";
-
-import { TableWrapper } from "@/src/core/components/layouts/TableWrapper";
 import { useToast } from "@/src/core/contexts/ToastContext";
-
-import { PageContainer } from "@/src/core/components/layouts/PageContainer";
-import { PageContent } from "@/src/core/components/layouts/PageContent";
 import { formatSecondsToHHMMSS } from "@/src/core/lib/formatters";
+
+// Services e Types
 import { logService } from "@/src/features/logs/services/log.service";
 import { Log } from "@/src/features/logs/types/logs";
 import { productService } from "@/src/features/products/services/product.service";
 import { Product, ProductStats } from "@/src/features/products/types/product";
-import { format } from "path";
 
 interface ProductViewProps {
   productId: number;
@@ -112,7 +110,7 @@ export default function ProductView({ productId }: ProductViewProps) {
       header: "Data",
       accessorKey: "createdAt",
       cell: (item) => (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
           <Clock size={12} /> {formatDate(item.createdAt)}
         </div>
       ),
@@ -140,7 +138,7 @@ export default function ProductView({ productId }: ProductViewProps) {
       accessorKey: "cycleTime",
       cell: (item) => (
         <span className="font-medium text-foreground">
-          {formatSecondsToHHMMSS(item.cycleTime)}s
+          {formatSecondsToHHMMSS(item.cycleTime)}
         </span>
       ),
     },
@@ -165,13 +163,18 @@ export default function ProductView({ productId }: ProductViewProps) {
   ];
 
   return (
-    <PageContainer>
-      <div className="shrink-0 flex flex-col gap-4">
+    // CONTAINER FLUIDO (Sem PageContainer)
+    <div className="w-full p-4 md:p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
+      {/* 1. Header & Info */}
+      <div className="shrink-0 space-y-4">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-purple transition-colors w-fit"
+          className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-purple transition-colors w-fit"
         >
-          <ArrowLeft size={16} /> Voltar
+          <div className="p-1.5 rounded-full bg-muted group-hover:bg-brand-purple/10 group-hover:text-brand-purple transition-all">
+            <ArrowLeft size={14} />
+          </div>
+          <span className="font-medium">Voltar</span>
         </button>
 
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -189,13 +192,14 @@ export default function ProductView({ productId }: ProductViewProps) {
             <span className="text-[10px] uppercase font-bold text-muted-foreground">
               Total Produzido
             </span>
-            <span className="text-2xl font-bold text-foreground">
+            <span className="text-2xl font-bold text-foreground tabular-nums">
               {stats?.totalLogs || 0}
             </span>
           </div>
         </div>
       </div>
 
+      {/* 2. KPIs */}
       <div className="shrink-0 grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Tempo Médio"
@@ -228,15 +232,19 @@ export default function ProductView({ productId }: ProductViewProps) {
         />
       </div>
 
-      <PageContent>
-        <div className="p-3 border-b border-border flex justify-between items-center bg-muted/20">
+      {/* 3. Tabela de Logs (Card Fluido) */}
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-border bg-muted/30 flex justify-between items-center">
           <h3 className="font-bold text-sm flex items-center gap-2 text-foreground">
             <History size={16} className="text-muted-foreground" />
             Histórico de Produção
           </h3>
+          <span className="text-[10px] font-bold bg-white border border-border px-2 py-0.5 rounded text-muted-foreground shadow-sm">
+            {totalItems} Logs
+          </span>
         </div>
 
-        <TableWrapper>
+        <div className="overflow-x-auto">
           <DataTable
             data={logs}
             columns={columns}
@@ -245,9 +253,9 @@ export default function ProductView({ productId }: ProductViewProps) {
             currentSort={sort}
             onSort={handleSort}
           />
-        </TableWrapper>
+        </div>
 
-        <div className="shrink-0 border-t border-border p-2 bg-muted/20">
+        <div className="border-t border-border p-2 bg-muted/30">
           <Pagination
             currentPage={page}
             totalItems={totalItems}
@@ -255,7 +263,7 @@ export default function ProductView({ productId }: ProductViewProps) {
             onPageChange={setPage}
           />
         </div>
-      </PageContent>
-    </PageContainer>
+      </div>
+    </div>
   );
 }
