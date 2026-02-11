@@ -1,4 +1,4 @@
-import { AsyncSearchSelect } from "@/src/core/components/shared/SearchSelect";
+import { AsyncSearchSelect } from "@/src/core/components/forms/SearchSelect";
 import { clientService } from "@/src/features/clients/services/client.service";
 import { Client } from "@/src/features/clients/types/client";
 import { User } from "lucide-react";

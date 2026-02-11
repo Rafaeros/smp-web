@@ -1,13 +1,14 @@
 "use client";
 
-import { PageHeader } from "@/src/core/components/shared/PageHeader";
-import { Pagination } from "@/src/core/components/shared/Pagination";
+import { Pagination } from "@/src/core/components/data-display/Pagination";
 import {
   DataTable,
   SortState,
-} from "@/src/core/components/shared/datatable/DataTable";
-import { ColumnDef } from "@/src/core/components/shared/datatable/types";
+} from "@/src/core/components/data-display/datatable/DataTable";
+import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
+import { PageHeader } from "@/src/core/components/layouts/PageHeader";
 import { useToast } from "@/src/core/contexts/ToastContext";
+import { formatSecondsToHHMMSS } from "@/src/core/lib/formatters";
 import {
   Clock,
   Factory,
@@ -102,7 +103,7 @@ export default function LogList() {
             <Smartphone size={14} />
           </div>
           <span className="text-sm text-muted-foreground">
-            {item.device?.macAdress || "Desconhecido"}
+            {item.device?.macAddress || "Desconhecido"}
           </span>
         </div>
       ),
@@ -136,17 +137,26 @@ export default function LogList() {
       ),
     },
     {
-      header: "Ciclo (s)",
-      accessorKey: "cycleTime",
+      header: "Qtd. Pausas",
+      accessorKey: "quantityPaused",
       cell: (item) => (
-        <div className="flex items-center gap-1 text-sm">
-          <RefreshCw size={12} className="text-muted-foreground" />
-          <span>{item.cycleTime?.toFixed(2) || "0.00"}s</span>
+        <div className="font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 w-fit">
+          {item.quantityPaused || 0}
         </div>
       ),
     },
     {
-      header: "Pausa (s)",
+      header: "Tempo de Produção",
+      accessorKey: "cycleTime",
+      cell: (item) => (
+        <div className="flex items-center gap-1 text-sm">
+          <RefreshCw size={12} className="text-muted-foreground" />
+          <span>{formatSecondsToHHMMSS(item.cycleTime)}</span>
+        </div>
+      ),
+    },
+    {
+      header: "Tempo de Pausa",
       accessorKey: "pausedTime",
       cell: (item) => (
         <div
@@ -157,7 +167,17 @@ export default function LogList() {
           }`}
         >
           <Timer size={12} />
-          <span>{item.pausedTime?.toFixed(2) || "0.00"}s</span>
+          <span>{formatSecondsToHHMMSS(item.pausedTime)}</span>
+        </div>
+      ),
+    },
+    {
+      header: "Tempo Total",
+      accessorKey: "totalTime",
+      cell: (item) => (
+        <div className="flex items-center gap-1 text-sm">
+          <Timer size={12} />
+          <span>{formatSecondsToHHMMSS(item.totalTime)}</span>
         </div>
       ),
     },

@@ -1,5 +1,5 @@
 import { api } from "@/src/core/api/client";
-import { SortState } from "@/src/core/components/shared/datatable/DataTable";
+import { SortState } from "@/src/core/components/data-display/datatable/DataTable";
 import { Page } from "@/src/core/types/pagination";
 import { Order, OrderSummary } from "../types/orders";
 

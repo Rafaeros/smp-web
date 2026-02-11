@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import {
   DataTable,
   SortState,
-} from "@/src/core/components/shared/datatable/DataTable";
-import { ColumnDef } from "@/src/core/components/shared/datatable/types";
-import { PageHeader } from "@/src/core/components/shared/PageHeader";
-import { Pagination } from "@/src/core/components/shared/Pagination";
+} from "@/src/core/components/data-display/datatable/DataTable";
+import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
+import { PageHeader } from "@/src/core/components/layouts/PageHeader";
+import { Pagination } from "@/src/core/components/data-display/Pagination";
 
 import { useToast } from "@/src/core/contexts/ToastContext";
 import { ClientFilters, clientService } from "../services/client.service";

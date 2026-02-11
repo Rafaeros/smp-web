@@ -4,7 +4,9 @@ export interface Log {
     createdAt: string;
     cycleTime: number;
     quantityProduced: number;
+    quantityPaused: number;
     pausedTime: number;
-    order?: {id:number; code: string},
-    device?: {id:number; macAdress:string}
+    totalTime: number;
+    device?: {id: number; macAddress: string}
+    order?: {id: number; code: string},
 }

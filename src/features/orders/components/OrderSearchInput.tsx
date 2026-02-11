@@ -1,4 +1,4 @@
-import { AsyncSearchSelect } from "@/src/core/components/shared/SearchSelect";
+import { AsyncSearchSelect } from "@/src/core/components/forms/SearchSelect";
 import { orderService } from "../services/order.service";
 import { OrderSummary } from "../types/orders";
 

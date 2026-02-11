@@ -1,8 +1,8 @@
 "use client";
 
-import { FormButton } from "@/src/core/components/shared/forms/FormButton";
-import { FormContainer } from "@/src/core/components/shared/forms/FormContainer";
-import { FormInput } from "@/src/core/components/shared/forms/FormInput";
+import { FormButton } from "@/src/core/components/forms/FormButton";
+import { FormContainer } from "@/src/core/components/forms/FormContainer";
+import { FormInput } from "@/src/core/components/forms/FormInput";
 import { APP_ROUTES } from "@/src/core/config/routes";
 import { Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
