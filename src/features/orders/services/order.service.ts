@@ -45,6 +45,11 @@ export const orderService = {
     return response as unknown as Page<Order>;
   },
 
+  getById: async (id: number): Promise<Order> => {
+    const response = await api.get(`/orders/${id}`);
+    return response as unknown as Order;
+  },
+
   getSummary: async (query: string): Promise<Page<OrderSummary>> => {
     const params = {
       page: 0,

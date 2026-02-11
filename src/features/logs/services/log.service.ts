@@ -2,6 +2,7 @@ import { api } from "@/src/core/api/client";
 import { SortState } from "@/src/core/components/data-display/datatable/DataTable";
 import { APP_ROUTES } from "@/src/core/config/routes";
 import { Page } from "@/src/core/types/pagination";
+import { OrderStats } from "../../orders/types/orders";
 import { ProductStats } from "../../products/types/product";
 import { Log } from "../types/logs";
 
@@ -37,6 +38,28 @@ export const logService = {
 
     const response = await api.get(APP_ROUTES.logs.list, { params });
     return response as unknown as Page<Log>;
+  },
+
+  getByOrder: async (
+    orderId: number,
+    page = 0,
+    size = 20,
+    sort?: SortState,
+  ): Promise<Page<Log>> => {
+    const params: any = { page, size };
+    if (sort?.field) {
+      params.sort = `${sort.field},${sort.direction}`;
+    } else {
+      params.sort = "createdAt,desc";
+    }
+
+    const response = await api.get(`/logs/order/${orderId}`, { params });
+    return response as unknown as Page<Log>;
+  },
+
+  getOrderStats: async (orderId: number): Promise<OrderStats> => {
+    const response = await api.get(`/logs/stats/order/${orderId}`);
+    return response as unknown as OrderStats;
   },
 
   getByProduct: async (
