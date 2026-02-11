@@ -25,7 +25,7 @@ export function Pagination({
   const endItem = Math.min((safeCurrentPage + 1) * safePageSize, safeTotalItems);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2 mb-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
       <div className="text-xs text-muted-foreground font-medium">
         Mostrando <span className="text-foreground font-bold">{startItem}</span> -{" "}
         <span className="text-foreground font-bold">{endItem}</span> de{" "}
