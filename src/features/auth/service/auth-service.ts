@@ -22,6 +22,19 @@ export const authService = {
 
     return userAuth;
   },
+  getUser: () => {
+    if (typeof window === "undefined") return null;
+    
+    const userJson = localStorage.getItem("smp.user");
+    if (!userJson) return null;
+
+    try {
+      return JSON.parse(userJson);
+    } catch (error) {
+      console.error("Erro ao ler usuário do cache", error);
+      return null;
+    }
+  },
 
   logout: () => {
     destroyCookie(undefined, 'smp.token', { path: '/' });

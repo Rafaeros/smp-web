@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_ROUTES } from "@/src/core/config/routes";
+import { authService } from "@/src/features/auth/service/auth-service";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronLeft,
@@ -18,9 +20,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { APP_ROUTES } from "@/src/core/config/routes";
-import { authService } from "@/src/features/auth/service/auth-service";
-
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: APP_ROUTES.dashboard },
   { name: "Mapa Produção", icon: Map, href: APP_ROUTES.devices.map },
@@ -38,10 +37,46 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState({
+    name: "Carregando...",
+    role: "...",
+    initials: ".."
+  });
 
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const user = authService.getUser();
+
+    if (user) {
+
+      const getInitials = (fullName: string) => {
+        if (!fullName) return "US";
+        const cleanName = fullName.trim().toUpperCase();
+        if (cleanName.length <= 2) return cleanName;
+        return cleanName.substring(0, 2);
+      };
+
+      setCurrentUser({
+        name: user.name,
+        role: user.role,
+        initials: getInitials(user.name)
+      });
+    }
+  }, []);
+
+  // Formatação amigável dos cargos
+  const formatRole = (role: string) => {
+    const rolesMap: Record<string, string> = {
+      ADMIN: "ADMINISTRADOR",
+      MANAGER: "GERENTE",
+      OPERATOR: "OPERADOR",
+      USER: "USUÁRIO"
+    };
+    return rolesMap[role] || role;
+  };
 
   const SidebarContent = () => (
     <>
@@ -120,16 +155,17 @@ export function Sidebar() {
             isCollapsed ? "justify-center" : ""
           }`}
         >
-          <div className="w-9 h-9 min-w-9 rounded-full bg-linear-to-tr from-brand-purple/20 to-brand-blue/20 flex items-center justify-center text-xs font-bold text-brand-purple border border-brand-purple/10">
-            RC
+          <div className="w-9 h-9 min-w-9 rounded-full bg-linear-to-tr from-brand-purple/20 to-brand-blue/20 flex items-center justify-center text-xs font-bold text-brand-purple border border-brand-purple/10 uppercase">
+            {currentUser.initials}
           </div>
+          
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground font-bold truncate">
-                Rafael Costa
+              <p className="text-sm text-foreground font-bold truncate capitalize" title={currentUser.name}>
+                {currentUser.name}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
-                Administrador
+                {formatRole(currentUser.role)}
               </p>
             </div>
           )}
