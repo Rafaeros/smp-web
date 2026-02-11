@@ -1,7 +1,7 @@
 "use client";
 
 import { APP_ROUTES } from "@/src/core/config/routes";
-import { useToast } from "@/src/core/contexts/ToastContext"; // Assumindo que você tem Toast
+import { useToast } from "@/src/core/contexts/ToastContext";
 import { deviceService } from "@/src/features/devices/service/devices.service";
 import { AvailableDevice } from "@/src/features/devices/types";
 import { userDeviceService } from "@/src/features/userdevices/service/user-device.service";
@@ -9,11 +9,10 @@ import { UserDeviceMap } from "@/src/features/userdevices/types";
 import {
   Cpu,
   MapPin,
-  Maximize2,
   MousePointer2,
   Move,
   Save,
-  X,
+  X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -64,6 +63,7 @@ export function FloorMap() {
 
     e.preventDefault();
     if (!isDragging) setIsDragging(true);
+
     const rect = mapRef.current.getBoundingClientRect();
     const rawX = ((e.clientX - rect.left) / rect.width) * 100;
     const rawY = ((e.clientY - rect.top) / rect.height) * 100;
@@ -71,7 +71,6 @@ export function FloorMap() {
     const x = Math.max(0, Math.min(100, rawX));
     const y = Math.max(0, Math.min(100, rawY));
 
-    // Atualização Otimista (Visual apenas)
     setDevices((prev) =>
       prev.map((dev) => (dev.id === draggingId ? { ...dev, x, y } : dev)),
     );
@@ -105,13 +104,13 @@ export function FloorMap() {
         loadMapData();
       }
     }
-
     setIsDragging(false);
   };
 
   const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     if (draggingId !== null || isDragging) return;
     if ((e.target as HTMLElement).closest(".device-marker")) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -142,7 +141,6 @@ export function FloorMap() {
         coordinateY: clickPos.y,
       });
       setDevices((prev) => [...prev, newDevice]);
-
       setModalOpen(false);
       showToast("Dispositivo adicionado ao mapa", "SUCCESS");
     } catch (error: any) {
@@ -154,10 +152,11 @@ export function FloorMap() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full relative">
+    <div className="flex flex-col w-full h-full relative overflow-hidden">
+      {/* HEADER FLUTUANTE (Fica fixo sobre o scroll) */}
       <div className="absolute top-4 left-4 right-4 z-30 flex justify-between items-start pointer-events-none">
         <div className="flex flex-col gap-2 pointer-events-auto">
-          <h1 className="text-2xl font-bold text-foreground drop-shadow-md">
+          <h1 className="text-2xl font-bold text-foreground drop-shadow-md bg-background/50 backdrop-blur-sm p-1 rounded-lg">
             Monitoramento da Planta
           </h1>
           <div className="flex items-center gap-2 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-border shadow-lg w-fit">
@@ -183,113 +182,110 @@ export function FloorMap() {
           </div>
         </div>
       </div>
-      <div className="flex-1 w-full h-full overflow-hidden bg-muted/20 relative cursor-crosshair">
-        <div
-          ref={mapRef}
-          onClick={handleMapClick}
-          className="w-full h-full relative"
-          style={{
-            backgroundImage: `url('/mapa-producao.png')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        >
-          <div className="absolute inset-0 bg-black/5 pointer-events-none" />
+      <div className="flex-1 w-full h-full overflow-auto bg-muted/20 custom-scrollbar">
+        <div className="relative min-w-250 lg:w-full aspect-video mx-auto shadow-2xl origin-top-left">
+          <div
+            ref={mapRef}
+            onClick={handleMapClick}
+            className="w-full h-full relative cursor-crosshair"
+            style={{
+              backgroundImage: `url('/mapa-producao.png')`,
+              backgroundSize: "100% 100%",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[5%_5%] pointer-events-none" />
 
-          {devices.map((device) => {
-            const isBeingDragged = draggingId === device.id;
-
-            return (
-              <div
-                key={device.id}
-                className={`device-marker absolute z-20 touch-none ${
-                  isBeingDragged ? "cursor-grabbing z-50" : "cursor-grab"
-                }`}
-                style={{
-                  left: `${device.x}%`,
-                  top: `${device.y}%`,
-                  transition: isBeingDragged
-                    ? "none"
-                    : "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-                onPointerDown={(e) => handlePointerDown(e, device.id)}
-                onPointerMove={handlePointerMove}
-                onPointerUp={(e) => handlePointerUp(e, device)}
-              >
-                <div className="transform -translate-x-1/2 -translate-y-1/2 relative group">
-                  {!isBeingDragged && (
+            {devices.map((device) => {
+              const isBeingDragged = draggingId === device.id;
+              return (
+                <div
+                  key={device.id}
+                  className={`device-marker absolute z-20 touch-none ${
+                    isBeingDragged ? "cursor-grabbing z-50" : "cursor-grab"
+                  }`}
+                  style={{
+                    left: `${device.x}%`,
+                    top: `${device.y}%`,
+                    transition: isBeingDragged
+                      ? "none"
+                      : "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                  onPointerDown={(e) => handlePointerDown(e, device.id)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={(e) => handlePointerUp(e, device)}
+                >
+                  <div className="transform -translate-x-1/2 -translate-y-1/2 relative group">
+                    {!isBeingDragged && (
+                      <div
+                        className={`absolute inset-0 rounded-full animate-ping opacity-40 scale-[2.0] ${
+                          device.status === "ONLINE"
+                            ? "bg-emerald-500"
+                            : "bg-red-500"
+                        }`}
+                      />
+                    )}
                     <div
-                      className={`absolute inset-0 rounded-full animate-ping opacity-40 scale-[2.0] ${
-                        device.status === "ONLINE"
-                          ? "bg-emerald-500"
-                          : "bg-red-500"
-                      }`}
-                    />
-                  )}
-                  <div
-                    className={`
-                    w-5 h-5 rounded-full border-2 border-white dark:border-slate-800 shadow-xl 
-                    flex items-center justify-center transition-transform
-                    ${
-                      isBeingDragged
-                        ? "scale-125 ring-4 ring-brand-purple/30"
-                        : "group-hover:scale-110"
-                    }
-                    ${
-                      device.status === "ONLINE"
-                        ? "bg-emerald-500 shadow-emerald-500/40"
-                        : "bg-red-500 shadow-red-500/40"
-                    }
-                  `}
-                  >
-                    {isBeingDragged && (
-                      <Move size={10} className="text-white animate-pulse" />
+                      className={`
+                        w-5 h-5 rounded-full border-2 border-white dark:border-slate-800 shadow-xl 
+                        flex items-center justify-center transition-transform
+                        ${
+                          isBeingDragged
+                            ? "scale-125 ring-4 ring-brand-purple/30"
+                            : "group-hover:scale-110"
+                        }
+                        ${
+                          device.status === "ONLINE"
+                            ? "bg-emerald-500 shadow-emerald-500/40"
+                            : "bg-red-500 shadow-red-500/40"
+                        }
+                      `}
+                    >
+                      {isBeingDragged && (
+                        <Move size={10} className="text-white animate-pulse" />
+                      )}
+                    </div>
+                    {!isBeingDragged && (
+                      <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0 pointer-events-none z-40">
+                        <div className="bg-card/95 backdrop-blur-xl border border-border p-3 rounded-xl shadow-2xl min-w-48">
+                          <div className="flex justify-between items-start mb-2">
+                            <span
+                              className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
+                                device.status === "ONLINE"
+                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  : "bg-red-500/10 text-red-600"
+                              }`}
+                            >
+                              {device.status}
+                            </span>
+                            <Cpu size={12} className="text-muted-foreground" />
+                          </div>
+                          <p className="font-bold text-foreground text-sm leading-tight mb-0.5">
+                            {device.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            {device.macAddress}
+                          </p>
+                        </div>
+                        <div className="w-3 h-3 bg-card border-r border-b border-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+                      </div>
                     )}
                   </div>
-                  {!isBeingDragged && (
-                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0 pointer-events-none z-40">
-                      <div className="bg-card/95 backdrop-blur-xl border border-border p-3 rounded-xl shadow-2xl min-w-48">
-                        <div className="flex justify-between items-start mb-2">
-                          <span
-                            className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
-                              device.status === "ONLINE"
-                                ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-red-500/10 text-red-600"
-                            }`}
-                          >
-                            {device.status}
-                          </span>
-                          <Cpu size={12} className="text-muted-foreground" />
-                        </div>
-                        <p className="font-bold text-foreground text-sm leading-tight mb-0.5">
-                          {device.name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
-                          {device.macAddress}
-                        </p>
-
-                        <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-brand-blue font-bold text-[9px] uppercase tracking-tighter">
-                          <span>Clique para detalhes</span>
-                          <Maximize2 size={10} />
-                        </div>
-                      </div>
-                      <div className="w-3 h-3 bg-card border-r border-b border-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
-                    </div>
-                  )}
                 </div>
+              );
+            })}
+
+            {modalOpen && (
+              <div
+                className="absolute w-8 h-8 flex items-center justify-center -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+                style={{ left: `${clickPos.x}%`, top: `${clickPos.y}%` }}
+              >
+                <div className="absolute inset-0 bg-brand-purple rounded-full animate-ping opacity-20" />
+                <div className="w-3 h-3 bg-brand-purple rounded-full border-2 border-white shadow-lg shadow-brand-purple/40" />
               </div>
-            );
-          })}
-          {modalOpen && (
-            <div
-              className="absolute w-8 h-8 flex items-center justify-center -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
-              style={{ left: `${clickPos.x}%`, top: `${clickPos.y}%` }}
-            >
-              <div className="absolute inset-0 bg-brand-purple rounded-full animate-ping opacity-20" />
-              <div className="w-3 h-3 bg-brand-purple rounded-full border-2 border-white shadow-lg shadow-brand-purple/40" />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
       {modalOpen && (
@@ -298,10 +294,7 @@ export function FloorMap() {
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setModalOpen(false)}
           />
-
           <div className="relative w-full max-w-lg bg-card border-t md:border border-border rounded-t-3xl md:rounded-2xl shadow-2xl p-6 md:p-8 animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-300">
-            <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6 md:hidden" />
-
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
