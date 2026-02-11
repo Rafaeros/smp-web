@@ -1,6 +1,6 @@
 "use client";
 
-import { Severity, Toast } from "@/src/core/components/shared/Toast";
+import { Severity, Toast } from "@/src/core/components/feedback/Toast";
 import { AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { destroyCookie, parseCookies } from "nookies";
