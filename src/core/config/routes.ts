@@ -26,4 +26,10 @@ export const APP_ROUTES = {
     edit: (id: number | string) => `/clients/${id}/edit`,
     view: (id: number | string) => `/clients/${id}`,
   },
+  users: {
+    list: "/users",
+    new: "/users/new",
+    edit: (id: number | string) => `/users/${id}/edit`,
+    view: (id: number | string) => `/users/${id}`,
+  },
 } as const;

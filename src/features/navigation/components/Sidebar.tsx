@@ -13,33 +13,22 @@ import {
   Map,
   Menu,
   PackageSearch,
+  UserCog, // Importando ícone para usuários
   UserRoundSearch,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: APP_ROUTES.dashboard },
-  { name: "Mapa Produção", icon: Map, href: APP_ROUTES.devices.map },
-  {
-    name: "Ordem de Produção",
-    icon: ClipboardList,
-    href: APP_ROUTES.orders.list,
-  },
-  { name: "Clientes", icon: UserRoundSearch, href: APP_ROUTES.clients.list },
-  { name: "Produtos", icon: PackageSearch, href: APP_ROUTES.products.list },
-  { name: "Logs", icon: History, href: APP_ROUTES.logs.list },
-];
+import { useEffect, useMemo, useState } from "react";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
   const [currentUser, setCurrentUser] = useState({
     name: "Carregando...",
-    role: "...",
+    role: "", // Inicializa vazio para não mostrar menu antes de carregar
     initials: ".."
   });
 
@@ -51,7 +40,6 @@ export function Sidebar() {
     const user = authService.getUser();
 
     if (user) {
-
       const getInitials = (fullName: string) => {
         if (!fullName) return "US";
         const cleanName = fullName.trim().toUpperCase();
@@ -66,8 +54,27 @@ export function Sidebar() {
       });
     }
   }, []);
+  const menuItems = useMemo(() => {
+    const items: { name: string; icon: any; href: string }[] = [
+      { name: "Dashboard", icon: LayoutDashboard, href: APP_ROUTES.dashboard },
+      { name: "Mapa Produção", icon: Map, href: APP_ROUTES.devices.map },
+      { name: "Ordem de Produção", icon: ClipboardList, href: APP_ROUTES.orders.list },
+      { name: "Clientes", icon: UserRoundSearch, href: APP_ROUTES.clients.list },
+      { name: "Produtos", icon: PackageSearch, href: APP_ROUTES.products.list },
+    ];
 
-  // Formatação amigável dos cargos
+    if (currentUser.role === "ADMIN") {
+      items.push({ 
+        name: "Gestão de Usuários", 
+        icon: UserCog, 
+        href: APP_ROUTES.users.list
+      });
+    }
+
+    items.push({ name: "Logs", icon: History, href: APP_ROUTES.logs.list });
+
+    return items;
+  }, [currentUser.role]);
   const formatRole = (role: string) => {
     const rolesMap: Record<string, string> = {
       ADMIN: "ADMINISTRADOR",
@@ -109,6 +116,8 @@ export function Sidebar() {
           <X size={24} />
         </button>
       </div>
+      
+      {/* NAVEGAÇÃO DINÂMICA */}
       <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
@@ -145,6 +154,7 @@ export function Sidebar() {
           );
         })}
       </nav>
+
       <div
         className={`p-4 border-t border-border mt-auto shrink-0 ${
           isCollapsed ? "items-center" : ""
