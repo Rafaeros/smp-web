@@ -9,10 +9,11 @@ import { UserDeviceMap } from "@/src/features/userdevices/types";
 import {
   Cpu,
   MapPin,
+  Maximize2,
   MousePointer2,
   Move,
   Save,
-  X
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -45,11 +46,11 @@ export function FloorMap() {
       setDevices(data);
     } catch (error) {
       console.error("Erro ao carregar mapa:", error);
+      showToast("Erro ao sincronizar mapa", "ERROR");
     } finally {
       setLoading(false);
     }
   }
-
   const handlePointerDown = (e: React.PointerEvent, deviceId: number) => {
     e.preventDefault();
     e.stopPropagation();
@@ -67,10 +68,8 @@ export function FloorMap() {
     const rect = mapRef.current.getBoundingClientRect();
     const rawX = ((e.clientX - rect.left) / rect.width) * 100;
     const rawY = ((e.clientY - rect.top) / rect.height) * 100;
-
     const x = Math.max(0, Math.min(100, rawX));
     const y = Math.max(0, Math.min(100, rawY));
-
     setDevices((prev) =>
       prev.map((dev) => (dev.id === draggingId ? { ...dev, x, y } : dev)),
     );
@@ -88,6 +87,7 @@ export function FloorMap() {
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
     if (currentDraggingId === null) return;
+
     if (!isDragging) {
       router.push(APP_ROUTES.devices.view(device.id));
     } else {
@@ -100,13 +100,12 @@ export function FloorMap() {
         showToast("Nova posição salva!", "SUCCESS");
       } catch (error) {
         console.error("Erro ao salvar posição", error);
-        showToast("Erro ao salvar posição. Recarregando...", "ERROR");
+        showToast("Falha ao salvar. Revertendo...", "ERROR");
         loadMapData();
       }
     }
     setIsDragging(false);
   };
-
   const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     if (draggingId !== null || isDragging) return;
     if ((e.target as HTMLElement).closest(".device-marker")) return;
@@ -127,7 +126,6 @@ export function FloorMap() {
       console.error("Erro ao buscar devices disponíveis", error);
     }
   };
-
   const handleSaveNewDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDeviceId || !customName) return;
@@ -152,11 +150,10 @@ export function FloorMap() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full relative overflow-hidden">
-      {/* HEADER FLUTUANTE (Fica fixo sobre o scroll) */}
+    <div className="flex flex-col w-full h-full relative overflow-hidden bg-muted/10">
       <div className="absolute top-4 left-4 right-4 z-30 flex justify-between items-start pointer-events-none">
         <div className="flex flex-col gap-2 pointer-events-auto">
-          <h1 className="text-2xl font-bold text-foreground drop-shadow-md bg-background/50 backdrop-blur-sm p-1 rounded-lg">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground drop-shadow-md bg-background/50 backdrop-blur-sm p-2 rounded-lg border border-transparent shadow-sm">
             Monitoramento da Planta
           </h1>
           <div className="flex items-center gap-2 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-border shadow-lg w-fit">
@@ -182,23 +179,23 @@ export function FloorMap() {
           </div>
         </div>
       </div>
-      <div className="flex-1 w-full h-full overflow-auto bg-muted/20 custom-scrollbar">
-        <div className="relative min-w-250 lg:w-full aspect-video mx-auto shadow-2xl origin-top-left">
-          <div
-            ref={mapRef}
-            onClick={handleMapClick}
-            className="w-full h-full relative cursor-crosshair"
-            style={{
-              backgroundImage: `url('/mapa-producao.png')`,
-              backgroundSize: "100% 100%",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-            }}
-          >
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[5%_5%] pointer-events-none" />
-
+      <div className="flex-1 w-full h-full overflow-auto custom-scrollbar p-8 md:p-12 lg:p-16">
+        <div
+          ref={mapRef}
+          onClick={handleMapClick}
+          className="relative min-w-250 max-w-400 w-full mx-auto shadow-2xl bg-white dark:bg-[#1a1a1a] rounded-xl overflow-hidden cursor-crosshair border border-border/50"
+        >
+          <img
+            src="/mapa.svg"
+            alt="Planta Baixa"
+            className="w-full h-auto block select-none pointer-events-none"
+            draggable={false}
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[4%_4%] pointer-events-none" />
+          <div className="absolute inset-0 w-full h-full">
             {devices.map((device) => {
               const isBeingDragged = draggingId === device.id;
+
               return (
                 <div
                   key={device.id}
@@ -228,19 +225,19 @@ export function FloorMap() {
                     )}
                     <div
                       className={`
-                        w-5 h-5 rounded-full border-2 border-white dark:border-slate-800 shadow-xl 
-                        flex items-center justify-center transition-transform
-                        ${
-                          isBeingDragged
-                            ? "scale-125 ring-4 ring-brand-purple/30"
-                            : "group-hover:scale-110"
-                        }
-                        ${
-                          device.status === "ONLINE"
-                            ? "bg-emerald-500 shadow-emerald-500/40"
-                            : "bg-red-500 shadow-red-500/40"
-                        }
-                      `}
+                            w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white dark:border-slate-800 shadow-xl 
+                            flex items-center justify-center transition-transform duration-200
+                            ${
+                              isBeingDragged
+                                ? "scale-125 ring-4 ring-brand-purple/30"
+                                : "group-hover:scale-110"
+                            }
+                            ${
+                              device.status === "ONLINE"
+                                ? "bg-emerald-500 shadow-emerald-500/40"
+                                : "bg-red-500 shadow-red-500/40"
+                            }
+                          `}
                     >
                       {isBeingDragged && (
                         <Move size={10} className="text-white animate-pulse" />
@@ -267,6 +264,11 @@ export function FloorMap() {
                           <p className="text-[10px] text-muted-foreground font-mono">
                             {device.macAddress}
                           </p>
+
+                          <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-brand-blue font-bold text-[9px] uppercase tracking-tighter">
+                            <span>Clique para detalhes</span>
+                            <Maximize2 size={10} />
+                          </div>
                         </div>
                         <div className="w-3 h-3 bg-card border-r border-b border-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
                       </div>
@@ -275,7 +277,6 @@ export function FloorMap() {
                 </div>
               );
             })}
-
             {modalOpen && (
               <div
                 className="absolute w-8 h-8 flex items-center justify-center -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
@@ -295,6 +296,8 @@ export function FloorMap() {
             onClick={() => setModalOpen(false)}
           />
           <div className="relative w-full max-w-lg bg-card border-t md:border border-border rounded-t-3xl md:rounded-2xl shadow-2xl p-6 md:p-8 animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-300">
+            <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6 md:hidden" />
+
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
