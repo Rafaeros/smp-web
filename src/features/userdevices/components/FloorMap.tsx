@@ -141,6 +141,7 @@ export function FloorMap() {
       setDevices((prev) => [...prev, newDevice]);
       setModalOpen(false);
       showToast("Dispositivo adicionado ao mapa", "SUCCESS");
+      await loadMapData();
     } catch (error: any) {
       console.error("Erro ao vincular dispositivo:", error);
       showToast(error.message || "Erro ao adicionar", "ERROR");

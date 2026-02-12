@@ -131,7 +131,7 @@ export default function DeviceDetailsPage() {
     try {
       await userDeviceService.unbind(id);
       toast.success("Dispositivo removido do mapa.");
-      router.push("/dashboard/map");
+      router.push("/user-devices/map");
     } catch (error) {
       toast.error("Erro ao desvincular.");
     }
