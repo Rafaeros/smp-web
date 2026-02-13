@@ -27,6 +27,7 @@ export function LoginForm() {
     } catch (err: any) {
       const backendMessage = err.response?.data?.message;
       const directMessage = err.message;
+
       if (backendMessage) {
         setError(backendMessage);
       } else if (directMessage && !directMessage.includes("status code")) {
@@ -65,7 +66,10 @@ export function LoginForm() {
           placeholder="Seu username"
           startIcon={User}
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+          onChange={(e) =>
+            setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))
+          }
           required
         />
 
@@ -75,6 +79,7 @@ export function LoginForm() {
           placeholder="••••••••"
           startIcon={Lock}
           value={password}
+          autoComplete="current-password"
           onChange={(e) => setPassword(e.target.value)}
           required
         />
