@@ -1,4 +1,6 @@
 import { api } from "@/src/core/api/client";
+import { SortState } from "@/src/core/components/data-display/datatable/DataTable";
+import { Page } from "@/src/core/types/api";
 import {
   DeviceBindingDTO,
   UpdateUserDeviceDTO,
@@ -20,6 +22,30 @@ export const userDeviceService = {
   getDetails: async (id: number): Promise<UserDeviceDetails> => {
     const response = await api.get(`/user-devices/${id}`);
     return response as unknown as UserDeviceDetails;
+  },
+
+  getAllUserDevicesById: async (
+    userId: number,
+    page = 0,
+    size = 10,
+    sort?: SortState,
+  ): Promise<Page<UserDeviceDetails>> => {
+    const params: any = {
+      page,
+      size,
+    };
+
+    if (sort?.field) {
+      params.sort = `${sort.field},${sort.direction}`;
+    } else {
+      params.sort = "id,desc";
+    }
+    const response = await api.get<Page<UserDeviceDetails>>(
+      `/user-devices/${userId}/devices`,
+      { params },
+    );
+
+    return response as unknown as Page<UserDeviceDetails>;
   },
 
   update: async (

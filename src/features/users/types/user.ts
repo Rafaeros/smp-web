@@ -1,4 +1,11 @@
-export type UserRole = "ADMIN" | "MANAGER" | "OPERATOR" | "USER";
+export type UserRole = "ADMIN" | "MANAGER" | "SUPERVISOR" | "OPERATOR";
+
+export const roleDisplayMap: Record<UserRole, string> = {
+  ADMIN: "ADMINISTRADOR",
+  MANAGER: "GERENTE",
+  SUPERVISOR: "SUPERVISOR",
+  OPERATOR: "OPERADOR",
+};
 
 export interface User {
   id: number;
@@ -9,6 +16,22 @@ export interface User {
   role: UserRole;
 }
 
+export interface CreateUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
+export interface UpdateUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
 export interface UserResponse {
   content: User[];
   page: {
@@ -17,4 +40,10 @@ export interface UserResponse {
     totalElements: number;
     totalPages: number;
   };
+}
+
+export interface UpdatePassword {
+  currentPassword?: string;
+  newPassword: string;
+  confirmNewPassword?: string;
 }

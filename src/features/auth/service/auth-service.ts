@@ -6,14 +6,17 @@ export const authService = {
   async login(credentials: AuthRequest): Promise<AuthResponse> {
     const data = await api.post<AuthResponse>("/auth/login", credentials);
     const userAuth = data as unknown as AuthResponse;
+    
     setCookie(undefined, "smp.token", userAuth.token, {
       maxAge: 60 * 60 * 8,
       path: "/",
     });
+
     if (typeof window !== "undefined") {
       localStorage.setItem(
         "smp.user",
         JSON.stringify({
+          id: userAuth.id,
           name: userAuth.username,
           role: userAuth.role,
         }),
@@ -22,13 +25,14 @@ export const authService = {
 
     return userAuth;
   },
+
   getUser: () => {
     if (typeof window === "undefined") return null;
     
     const userJson = localStorage.getItem("smp.user");
     if (!userJson) return null;
 
-    try {
+    try {   
       return JSON.parse(userJson);
     } catch (error) {
       console.error("Erro ao ler usuário do cache", error);

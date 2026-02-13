@@ -28,7 +28,7 @@ export interface UserDeviceDetails {
   status: DeviceStatus;
   process: ProcessStatus;
   stage?: ProcessStage;
-  currentOrder?: string;
+  code?: string;
   orderId?: number;
   lastSeen: string;
   coordinateX: number;

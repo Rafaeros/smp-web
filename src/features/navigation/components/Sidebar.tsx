@@ -13,23 +13,25 @@ import {
   Map,
   Menu,
   PackageSearch,
-  UserCog, // Importando ícone para usuários
+  UserCog,
   UserRoundSearch,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // Adicionado useRouter
 import { useEffect, useMemo, useState } from "react";
 
 export function Sidebar() {
+  const router = useRouter(); // Hook para navegação
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  
+
   const [currentUser, setCurrentUser] = useState({
+    id: 0, // Adicionado ID no estado
     name: "Carregando...",
-    role: "", // Inicializa vazio para não mostrar menu antes de carregar
-    initials: ".."
+    role: "",
+    initials: "..",
   });
 
   useEffect(() => {
@@ -48,26 +50,36 @@ export function Sidebar() {
       };
 
       setCurrentUser({
+        id: user.id || 0, // Recupera o ID do localStorage
         name: user.name,
         role: user.role,
-        initials: getInitials(user.name)
+        initials: getInitials(user.name),
       });
     }
   }, []);
+
   const menuItems = useMemo(() => {
     const items: { name: string; icon: any; href: string }[] = [
       { name: "Dashboard", icon: LayoutDashboard, href: APP_ROUTES.dashboard },
       { name: "Mapa Produção", icon: Map, href: APP_ROUTES.devices.map },
-      { name: "Ordem de Produção", icon: ClipboardList, href: APP_ROUTES.orders.list },
-      { name: "Clientes", icon: UserRoundSearch, href: APP_ROUTES.clients.list },
+      {
+        name: "Ordem de Produção",
+        icon: ClipboardList,
+        href: APP_ROUTES.orders.list,
+      },
+      {
+        name: "Clientes",
+        icon: UserRoundSearch,
+        href: APP_ROUTES.clients.list,
+      },
       { name: "Produtos", icon: PackageSearch, href: APP_ROUTES.products.list },
     ];
 
-    if (currentUser.role === "ADMIN") {
-      items.push({ 
-        name: "Gestão de Usuários", 
-        icon: UserCog, 
-        href: APP_ROUTES.users.list
+    if (currentUser.role === "ADMIN" || currentUser.role === "MANAGER") {
+      items.push({
+        name: "Gestão de Usuários",
+        icon: UserCog,
+        href: APP_ROUTES.users.list,
       });
     }
 
@@ -75,14 +87,21 @@ export function Sidebar() {
 
     return items;
   }, [currentUser.role]);
+
   const formatRole = (role: string) => {
     const rolesMap: Record<string, string> = {
       ADMIN: "ADMINISTRADOR",
       MANAGER: "GERENTE",
       OPERATOR: "OPERADOR",
-      USER: "USUÁRIO"
+      USER: "USUÁRIO",
     };
     return rolesMap[role] || role;
+  };
+
+  const handleProfileClick = () => {
+    if (currentUser.id) {
+      router.push(`/users/${currentUser.id}`);
+    }
   };
 
   const SidebarContent = () => (
@@ -116,8 +135,6 @@ export function Sidebar() {
           <X size={24} />
         </button>
       </div>
-      
-      {/* NAVEGAÇÃO DINÂMICA */}
       <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
@@ -161,17 +178,22 @@ export function Sidebar() {
         }`}
       >
         <div
-          className={`flex items-center gap-3 ${
+          onClick={handleProfileClick}
+          className={`flex items-center gap-3 cursor-pointer group hover:bg-muted/50 p-2 -mx-2 rounded-xl transition-all duration-200 ${
             isCollapsed ? "justify-center" : ""
           }`}
+          title="Ver meu perfil"
         >
-          <div className="w-9 h-9 min-w-9 rounded-full bg-linear-to-tr from-brand-purple/20 to-brand-blue/20 flex items-center justify-center text-xs font-bold text-brand-purple border border-brand-purple/10 uppercase">
+          <div className="w-9 h-9 min-w-9 rounded-full bg-linear-to-tr from-brand-purple/20 to-brand-blue/20 flex items-center justify-center text-xs font-bold text-brand-purple border border-brand-purple/10 uppercase group-hover:ring-2 ring-brand-purple/20 transition-all">
             {currentUser.initials}
           </div>
-          
+
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground font-bold truncate capitalize" title={currentUser.name}>
+              <p
+                className="text-sm text-foreground font-bold truncate capitalize group-hover:text-brand-purple transition-colors"
+                title={currentUser.name}
+              >
                 {currentUser.name}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
