@@ -14,12 +14,10 @@ export interface SortState {
 
 export const productService = {
   create: async (data: CreateProduct): Promise<Product> => {
-    const response = await api.post("/products", data, { 
-      flash: true 
-    });
+    const response = await api.post("/products", data);
     return response as unknown as Product;
   },
-  
+
   getAll: async (
     page = 0,
     size = 10,
@@ -38,7 +36,7 @@ export const productService = {
       params.sort = "id,desc";
     }
     const response = await api.get<Page<Product>>("/products", { params });
-    
+
     return response as unknown as Page<Product>;
   },
 
@@ -48,13 +46,11 @@ export const productService = {
   },
 
   update: async (id: number, data: UpdateProduct): Promise<Product> => {
-    const response = await api.put(`/products/${id}`, data, { 
-      flash: true 
-    });
+    const response = await api.put(`/products/${id}`, data);
     return response as unknown as Product;
   },
 
-  delete: async (id: number): Promise<void> => {
+  delete: async (id: number): Promise<any> => {
     await api.delete(`/products/${id}`);
-  }
+  },
 };

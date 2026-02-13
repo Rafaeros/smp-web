@@ -1,19 +1,17 @@
-
 export interface CreateProduct {
-    code: string,
-    description: string
+  code: string;
+  description: string;
 }
 
 export interface UpdateProduct {
-    code?: string,
-    description?: string
+  code?: string;
+  description?: string;
 }
 
-
 export interface Product {
-    id: number,
-    code: string,
-    description: string
+  id: number;
+  code: string;
+  description: string;
 }
 
 export interface ProductStats {
