@@ -1,7 +1,6 @@
 "use client";
 
-import { Building2, Copy, Edit, Eye, Trash2, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Building2, Copy, Edit, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -10,16 +9,17 @@ import {
 } from "@/src/core/components/data-display/datatable/DataTable";
 import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
 import { Pagination } from "@/src/core/components/data-display/Pagination";
+import { ConfirmActionModal } from "@/src/core/components/feedback/ConfirmActionModal";
 import { PageHeader } from "@/src/core/components/layouts/PageHeader";
 
 import { useToast } from "@/src/core/contexts/ToastContext";
+import { copyToClipboard } from "@/src/core/lib/utils";
 import { ClientFilters, clientService } from "../services/client.service";
 import { Client } from "../types/client";
+import { ClientFormModal } from "./ClientFormModal";
 import { ClientListFilters } from "./ClientListFilterProps";
-import { copyToClipboard } from "@/src/core/lib/utils";
 
 export default function ClientList() {
-  const router = useRouter();
   const { showToast } = useToast();
 
   const [clients, setClients] = useState<Client[]>([]);
@@ -28,6 +28,15 @@ export default function ClientList() {
   const [activeFilters, setActiveFilters] = useState<ClientFilters>({});
   const [sort, setSort] = useState<SortState | undefined>(undefined);
   const [totalItems, setTotalItems] = useState(0);
+  const [formModal, setFormModal] = useState<{ isOpen: boolean; client: Client | null }>({
+    isOpen: false,
+    client: null,
+  });
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; clientId: number | null }>({
+    isOpen: false,
+    clientId: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -49,24 +58,24 @@ export default function ClientList() {
   const handleSort = (field: string) => {
     setSort((prev) => {
       if (prev && prev.field === field) {
-        return prev.direction === "asc"
-          ? { field, direction: "desc" }
-          : undefined;
+        return prev.direction === "asc" ? { field, direction: "desc" } : undefined;
       }
       return { field, direction: "asc" };
     });
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este cliente?")) {
-      try {
-        await clientService.delete(id);
-        fetchClients();
-        showToast("Cliente excluído com sucesso", "SUCCESS");
-      } catch (err) {
-        console.error(err);
-        showToast("Erro ao excluir cliente", "ERROR");
-      }
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.clientId) return;
+
+    setIsDeleting(true);
+    try {
+      await clientService.delete(deleteModal.clientId);
+      fetchClients();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, clientId: null });
     }
   };
 
@@ -90,9 +99,9 @@ export default function ClientList() {
           title="Clique para copiar"
         >
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300
-            bg-brand-purple/10 text-brand-purple border-brand-purple/10
-            group-hover:bg-linear-to-r group-hover:from-brand-purple group-hover:to-brand-blue group-hover:text-white group-hover:border-transparent group-hover:shadow-md"
+            className="w-8 h-8 rounded-lg flex items-center justify-center border transition-all duration-300
+            bg-brand-purple/5 text-brand-purple border-brand-purple/10
+            group-hover:bg-brand-purple group-hover:text-white group-hover:border-transparent group-hover:shadow-md"
           >
             <Building2 size={16} className="group-hover:hidden" />
             <Copy size={16} className="hidden group-hover:block" />
@@ -108,22 +117,18 @@ export default function ClientList() {
       header: "Ações",
       className: "w-32 text-right",
       cell: (item) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-1">
           <button
-            onClick={() => router.push(`/clients/${item.id}`)}
-            className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors"
-          >
-            <Eye size={16} />
-          </button>
-          <button
-            onClick={() => router.push(`/clients/${item.id}/edit`)}
+            onClick={() => setFormModal({ isOpen: true, client: item })}
             className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+            title="Editar Cliente"
           >
             <Edit size={16} />
           </button>
           <button
-            onClick={() => handleDelete(item.id)}
+            onClick={() => setDeleteModal({ isOpen: true, clientId: item.id })}
             className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Excluir Cliente"
           >
             <Trash2 size={16} />
           </button>
@@ -137,10 +142,9 @@ export default function ClientList() {
       <div className="shrink-0">
         <PageHeader
           title="Gestão de Clientes"
-          subtitle="Base de clientes cadastrados"
+          subtitle="Base de clientes e parceiros Lanx"
           icon={Users}
-          onNew={() => router.push("/clients/new")}
-          onExport={() => showToast("Exportando CSV...", "INFO")}
+          onNew={() => setFormModal({ isOpen: true, client: null })}
           filterComponent={
             <ClientListFilters
               onFilter={setActiveFilters}
@@ -151,12 +155,12 @@ export default function ClientList() {
       </div>
 
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 bg-muted/30 flex justify-between items-center">
-          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-            Listagem
+        <div className="p-4 bg-muted/30 flex justify-between items-center border-b border-border">
+          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider font-mono">
+            Empresas Cadastradas
           </span>
           <span className="text-[10px] font-bold bg-white border border-border px-2 py-0.5 rounded text-muted-foreground shadow-sm">
-            {totalItems} Clientes Encontrados
+            {totalItems} Registros
           </span>
         </div>
 
@@ -180,6 +184,22 @@ export default function ClientList() {
           />
         </div>
       </div>
+      <ClientFormModal
+        isOpen={formModal.isOpen}
+        client={formModal.client}
+        onClose={() => setFormModal({ isOpen: false, client: null })}
+        onSuccess={fetchClients}
+      />
+      <ConfirmActionModal
+        isOpen={deleteModal.isOpen}
+        isLoading={isDeleting}
+        onClose={() => setDeleteModal({ isOpen: false, clientId: null })}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Cliente"
+        description="Esta ação removerá o cliente da base. Se ele possuir ordens de produção vinculadas, a exclusão será impedida por segurança."
+        confirmText="Confirmar Exclusão"
+        variant="danger"
+      />
     </div>
   );
 }

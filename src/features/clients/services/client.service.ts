@@ -44,6 +44,11 @@ export const clientService = {
     return response as unknown as Client;
   },
 
+  update: async (id: number, client: Client): Promise<Client> => {
+    const response = await api.put(APP_ROUTES.clients.view(id), client);
+    return response as unknown as Client;
+  },
+
   delete: async (id: number): Promise<void> => {
     await api.delete(APP_ROUTES.clients.view(id));
   }
