@@ -14,7 +14,13 @@ export interface DashboardLog {
   type: 'info' | 'warning' | 'error';
 }
 
+export interface DashboardPerformance {
+  hour: string;
+  qty: number;
+}
+
 export interface DashboardSummary {
   kpis: DashboardKPI[];
   recentLogs: DashboardLog[];
+  performanceData: DashboardPerformance[];
 }
