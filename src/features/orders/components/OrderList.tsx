@@ -8,6 +8,7 @@ import { ColumnDef } from "@/src/core/components/data-display/datatable/types";
 import { Pagination } from "@/src/core/components/data-display/Pagination";
 import { PageHeader } from "@/src/core/components/layouts/PageHeader";
 import { useToast } from "@/src/core/contexts/ToastContext";
+import { copyToClipboard } from "@/src/core/lib/utils";
 import {
   OrderFilters,
   orderService,
@@ -26,7 +27,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Order, OrderStatus } from "../types/orders";
 import { OrderListFilters } from "./OrderListFiltersProps";
-import { copyToClipboard } from "@/src/core/lib/utils";
 
 const getStatusBadge = (status: OrderStatus) => {
   const styles: Record<string, string> = {
@@ -57,6 +57,13 @@ const getStatusBadge = (status: OrderStatus) => {
   );
 };
 
+const formatDateToBR = (date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export function OrderList() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -64,6 +71,7 @@ export function OrderList() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<OrderFilters>({});
   const [totalItems, setTotalItems] = useState(0);
   const [sort, setSort] = useState<SortState | undefined>({
@@ -106,6 +114,35 @@ export function OrderList() {
     } catch (error) {
       console.error(error);
       showToast("Erro ao excluir ordem", "ERROR");
+    }
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 15);
+
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 2);
+
+      const filter = {
+        startDeliveryDate: formatDateToBR(startDate),
+        endDeliveryDate: formatDateToBR(endDate),
+        clientName: "",
+        productCode: "",
+        status: "",
+      };
+
+      await orderService.syncFromErp(filter, true);
+      showToast("Sincronização concluída com sucesso!", "SUCCESS");
+      fetchOrders();
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Erro ao sincronizar ordens.";
+      showToast(msg, "ERROR");
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -253,6 +290,8 @@ export function OrderList() {
           icon={Factory}
           onNew={() => router.push("/orders/new")}
           onExport={() => showToast("Exportando dados...", "INFO")}
+          onSync={handleSync}
+          isSyncing={isSyncing}
           filterComponent={
             <OrderListFilters
               onFilter={setActiveFilters}

@@ -11,6 +11,12 @@ export interface OrderSummary {
   code: string;
 }
 
+export interface UpdateOrder {
+  deliveryDate: string;
+  totalQuantity: number;
+  producedQuantity: number;
+}
+
 export interface OrderStats {
   quantityProduced: number;
   totalLogs: number;

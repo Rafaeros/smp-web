@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertCircle,
   Check,
@@ -45,6 +47,7 @@ export function AsyncSearchSelect<T>({
   const [hasSearched, setHasSearched] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialDisplayValue) {
@@ -64,17 +67,18 @@ export function AsyncSearchSelect<T>({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   useEffect(() => {
-    if (!query.trim() || query === initialDisplayValue) {
+    if (!query.trim()) {
       setResults([]);
-      if (!query.trim()) setIsOpen(false);
+      setIsOpen(false);
       return;
+    }
+    if (query === initialDisplayValue) {
+        return; 
     }
 
     const delayDebounceFn = setTimeout(async () => {
       setIsLoading(true);
-      setIsOpen(true);
       setHasSearched(false);
 
       try {
@@ -94,8 +98,10 @@ export function AsyncSearchSelect<T>({
   }, [query, fetcher, initialDisplayValue]);
 
   const handleSelectItem = (item: T) => {
-    setQuery(getItemLabel(item));
+    const label = getItemLabel(item);
+    setQuery(label);
     setIsOpen(false);
+    inputRef.current?.blur();
     onSelect(item);
   };
 
@@ -127,6 +133,7 @@ export function AsyncSearchSelect<T>({
     <div className="relative w-full" ref={wrapperRef}>
       <div className="relative group">
         <input
+          ref={inputRef}
           type="text"
           className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg py-3 pl-10 pr-10 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70"
           placeholder={placeholder}
@@ -136,8 +143,11 @@ export function AsyncSearchSelect<T>({
             if (!isOpen && e.target.value) setIsOpen(true);
           }}
           onFocus={() => {
-            if (query && query !== initialDisplayValue) setIsOpen(true);
+            if (query && query !== initialDisplayValue) {
+                setIsOpen(true);
+            }
           }}
+          onClick={(e) => e.currentTarget.select()}
         />
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
           {isLoading ? (
@@ -152,6 +162,7 @@ export function AsyncSearchSelect<T>({
               setQuery("");
               setResults([]);
               setIsOpen(false);
+              inputRef.current?.focus();
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >

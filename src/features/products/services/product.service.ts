@@ -40,6 +40,17 @@ export const productService = {
     return response as unknown as Page<Product>;
   },
 
+  getSummary: async (text: string): Promise<Page<Product>> => {
+    const params = {
+      query: text,
+      page: 0,
+      size: 20,
+    };
+
+    const response = await api.get("/products/summary", { params });
+    return response as unknown as Page<Product>;
+  },
+
   getById: async (id: number): Promise<Product> => {
     const response = await api.get(`/products/${id}`);
     return response as unknown as Product;

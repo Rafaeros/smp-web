@@ -1,7 +1,7 @@
 import { api } from "@/src/core/api/client";
 import { SortState } from "@/src/core/components/data-display/datatable/DataTable";
 import { Page } from "@/src/core/types/pagination";
-import { Order, OrderSummary } from "../types/orders";
+import { Order, OrderSummary, UpdateOrder } from "../types/orders";
 
 export interface OrderFilters {
   code?: string;
@@ -13,6 +13,12 @@ export interface OrderFilters {
 }
 
 export const orderService = {
+
+  create : async (order: Order): Promise<Order> => {
+    const response = await api.post("/orders", order);
+    return response as unknown as Order;
+  },
+
   getAll: async (
     page: number,
     size: number,
@@ -59,6 +65,16 @@ export const orderService = {
     
     const response = await api.get<Page<OrderSummary>>("/orders/summary", { params });
     return response as unknown as Page<OrderSummary>;
+  },
+
+  update: async (id: number, data: UpdateOrder): Promise<any> => {
+    const cleanData = {
+      deliveryDate: data.deliveryDate,
+      totalQuantity: data.totalQuantity,
+      producedQuantity: data.producedQuantity
+    };
+    
+    return await api.patch(`/orders/${id}`, cleanData);
   },
 
   delete: async (id: number): Promise<void> => {
