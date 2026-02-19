@@ -7,6 +7,7 @@ export interface Log {
     quantityPaused: number;
     pausedTime: number;
     totalTime: number;
+    processStage: string;
     device?: {id: number; macAddress: string}
     order?: {id: number; code: string},
 }

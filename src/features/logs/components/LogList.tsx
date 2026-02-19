@@ -13,6 +13,7 @@ import {
   Clock,
   Factory,
   History,
+  Layers,
   RefreshCw,
   Smartphone,
   Timer,
@@ -21,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LogFilters, logService } from "../services/log.service";
 import { Log } from "../types/logs";
+import { ProcessStage, ProcessStageLabels } from "@/src/features/devices/types";
 
 export default function LogList() {
   const router = useRouter();
@@ -138,6 +140,20 @@ export default function LogList() {
             <Factory size={12} />
             {item.order?.code || "N/A"}
           </div>
+        </div>
+      ),
+    },
+    {
+      header: "Etapa",
+      accessorKey: "processStage",
+      cell: (item) => (
+        <div className="flex items-center gap-1.5 w-fit bg-muted/50 border border-border px-2 py-1 rounded-md">
+          <Layers size={12} className="text-muted-foreground" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+            {item.processStage
+              ? ProcessStageLabels[item.processStage as ProcessStage]
+              : "N/A"}
+          </span>
         </div>
       ),
     },
