@@ -8,9 +8,11 @@ import {
   Cpu,
   FileText,
   Layers,
+  Lock,
   Save,
   Settings,
   Wifi,
+  WifiOff,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +23,7 @@ import {
   ProcessStage,
   ProcessStageLabels,
   ProcessStatus,
+  ProcessStatusLabels,
 } from "@/src/features/devices/types";
 
 import { userDeviceService } from "@/src/features/userdevices/service/user-device.service";
@@ -32,18 +35,66 @@ import {
 import { OrderSearchInput } from "@/src/features/orders/components/OrderSearchInput";
 import { OrderSummary } from "@/src/features/orders/types/orders";
 
-const statusConfig = {
-  RUNNING: {
-    color: "bg-green-500",
-    text: "text-green-600",
-    bg: "bg-green-500/10",
-  },
-  IDLE: { color: "bg-red-500", text: "text-red-600", bg: "bg-red-500/10" },
-  PAUSED: {
-    color: "bg-yellow-500",
-    text: "text-yellow-600",
-    bg: "bg-yellow-500/10",
-  },
+const getConnectionVisuals = (status: DeviceStatus | string) => {
+  if (status === DeviceStatus.OFFLINE) {
+    return {
+      bg: "bg-red-500",
+      text: "text-red-600 dark:text-red-400",
+      bgText: "bg-red-500/10",
+      border: "border-red-500/20",
+      icon: <WifiOff size={12} className="text-red-600 dark:text-red-400" />,
+    };
+  }
+  return {
+    bg: "bg-emerald-500",
+    text: "text-emerald-600 dark:text-emerald-400",
+    bgText: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    icon: <Wifi size={12} className="text-emerald-600 dark:text-emerald-400" />,
+  };
+};
+
+const getProcessVisuals = (
+  status: DeviceStatus | string,
+  process?: ProcessStatus | string,
+) => {
+  if (status === DeviceStatus.OFFLINE) {
+    return {
+      bg: "bg-red-500",
+      text: "text-red-600 dark:text-red-400",
+      bgText: "bg-red-500/10",
+      border: "border-red-500/20",
+      pulse: "",
+    };
+  }
+
+  switch (process) {
+    case ProcessStatus.RUNNING:
+      return {
+        bg: "bg-blue-500",
+        text: "text-blue-600 dark:text-blue-400",
+        bgText: "bg-blue-500/10",
+        border: "border-blue-500/20",
+        pulse: "animate-pulse",
+      };
+    case ProcessStatus.PAUSED:
+      return {
+        bg: "bg-amber-500",
+        text: "text-amber-600 dark:text-amber-400",
+        bgText: "bg-amber-500/10",
+        border: "border-amber-500/20",
+        pulse: "",
+      };
+    case ProcessStatus.IDLE:
+    default:
+      return {
+        bg: "bg-emerald-500",
+        text: "text-emerald-600 dark:text-emerald-400",
+        bgText: "bg-emerald-500/10",
+        border: "border-emerald-500/20",
+        pulse: "",
+      };
+  }
 };
 
 interface DeviceFormData {
@@ -71,6 +122,9 @@ export default function DeviceDetailsPage() {
   useEffect(() => {
     if (!id) return;
     loadData();
+
+    const interval = setInterval(loadData, 15000);
+    return () => clearInterval(interval);
   }, [id]);
 
   async function loadData() {
@@ -78,13 +132,14 @@ export default function DeviceDetailsPage() {
       const data = await userDeviceService.getDetails(id);
       setDevice(data);
 
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         name: data.name,
         stage: data.stage,
-        orderId: null,
-      });
-      const backendCode = (data as any).code || data.currentOrder;
+        orderId: prev.orderId || null,
+      }));
 
+      const backendCode = (data as any).code || data.code;
       if (backendCode) {
         setInitialOrderCode(backendCode);
       }
@@ -137,7 +192,7 @@ export default function DeviceDetailsPage() {
     }
   };
 
-  if (loading) {
+  if (loading && !device) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground gap-3">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-purple" />
@@ -151,9 +206,18 @@ export default function DeviceDetailsPage() {
       <div className="p-8 text-foreground">Dispositivo não encontrado.</div>
     );
 
-  const backendKey = device.process as unknown as keyof typeof ProcessStatus;
-  const style = statusConfig[backendKey] || statusConfig.IDLE;
-  const translatedText = ProcessStatus[backendKey] || device.process;
+  const isProcessActive =
+    device.status === DeviceStatus.ONLINE &&
+    (device.process === ProcessStatus.RUNNING ||
+      device.process === ProcessStatus.PAUSED);
+
+  const connVisuals = getConnectionVisuals(device.status);
+  const procVisuals = getProcessVisuals(device.status, device.process);
+
+  const displayProcessStatus =
+    device.status === DeviceStatus.OFFLINE
+      ? "OFFLINE"
+      : ProcessStatusLabels[device.process as ProcessStatus] || "PARADO";
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto py-10 px-6">
@@ -172,25 +236,15 @@ export default function DeviceDetailsPage() {
                 {device.name}
               </h1>
               <span
-                className={`text-xs px-2.5 py-0.5 rounded-full border font-bold tracking-wide flex items-center gap-1.5 ${
-                  device.status === DeviceStatus.ONLINE
-                    ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
-                    : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
-                }`}
+                className={`text-[10px] px-2 py-0.5 rounded-md border font-black tracking-widest flex items-center gap-1.5 uppercase ${connVisuals.bgText} ${connVisuals.border} ${connVisuals.text}`}
               >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    device.status === DeviceStatus.ONLINE
-                      ? "bg-green-500"
-                      : "bg-red-500"
-                  }`}
-                />
-                {device.status}
+                {connVisuals.icon}
+                {device.status === DeviceStatus.ONLINE ? "ONLINE" : "OFFLINE"}
               </span>
             </div>
             <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">
-                VÍNCULO: #{device.id}
+                ID: #{device.id}
               </span>
               <span>•</span>
               <span className="font-mono text-xs">
@@ -199,17 +253,14 @@ export default function DeviceDetailsPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border border-border px-4 py-2 rounded-lg shadow-sm">
-          <Activity
-            size={16}
-            className={
-              backendKey === "RUNNING"
-                ? "text-green-500 animate-pulse"
-                : "text-gray-400"
-            }
-          />
-          Status Atual:{" "}
-          <span className={`font-bold ${style.text}`}>{translatedText}</span>
+        <div
+          className={`flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl shadow-sm border ${procVisuals.bgText} ${procVisuals.border} ${procVisuals.text}`}
+        >
+          <Activity size={18} className={procVisuals.pulse} />
+          <span className="font-medium opacity-80">Processo:</span>
+          <span className="font-black uppercase tracking-wide">
+            {displayProcessStatus}
+          </span>
         </div>
       </div>
 
@@ -225,13 +276,26 @@ export default function DeviceDetailsPage() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-foreground">
-                  Controle de Processo
+                  Configuração de Processo
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Atualize a Ordem de Produção e o estado da máquina.
+                  Vincular Ordem de Produção e Etapa.
                 </p>
               </div>
             </div>
+            {isProcessActive && (
+              <div className="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 p-4 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2">
+                <Lock className="shrink-0 mt-0.5" size={18} />
+                <div>
+                  <h4 className="text-sm font-bold">Edição Bloqueada</h4>
+                  <p className="text-xs opacity-90 leading-relaxed mt-1">
+                    O dispositivo está <strong>{displayProcessStatus}</strong>.
+                    Para alterar a Ordem de Produção, finalize ou pause o
+                    processo no equipamento físico primeiro.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -240,29 +304,36 @@ export default function DeviceDetailsPage() {
                 </label>
                 <input
                   type="text"
-                  className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all"
+                  className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   value={formData.name}
                   onChange={(e) => handleChange("name", e.target.value)}
+                  disabled={isProcessActive}
                 />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <FileText size={12} /> Ordem de Produção (OP)
                 </label>
-                <OrderSearchInput
-                  onOrderSelect={handleOrderSelect}
-                  initialDisplayValue={initialOrderCode}
-                />
+                <div
+                  className={
+                    isProcessActive
+                      ? "pointer-events-none opacity-50 grayscale"
+                      : ""
+                  }
+                >
+                  <OrderSearchInput
+                    onOrderSelect={handleOrderSelect}
+                    initialDisplayValue={initialOrderCode}
+                  />
+                </div>
               </div>
-
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Layers size={12} /> Etapa Atual
+                  <Layers size={12} /> Etapa de Produção
                 </label>
                 <div className="relative">
                   <select
-                    className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all appearance-none cursor-pointer"
+                    className="w-full bg-muted border border-transparent focus:bg-background focus:border-brand-blue rounded-lg p-3 text-sm text-foreground outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/80"
                     value={formData.stage || ""}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -271,9 +342,9 @@ export default function DeviceDetailsPage() {
                         val === "" ? undefined : (val as ProcessStage),
                       );
                     }}
+                    disabled={isProcessActive}
                   >
                     <option value="">Selecione uma etapa...</option>
-
                     {Object.values(ProcessStage).map((stageVal) => (
                       <option key={stageVal} value={stageVal}>
                         {ProcessStageLabels[stageVal]}
@@ -281,36 +352,21 @@ export default function DeviceDetailsPage() {
                     ))}
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <ChevronDown size={16} />
+                    {!isProcessActive ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <Lock size={14} />
+                    )}
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Activity size={12} /> Status (Sensor)
-                </label>
-                <div className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm text-muted-foreground flex items-center gap-2 cursor-not-allowed opacity-80">
-                  <div
-                    className={`w-2 h-2 rounded-full ${style.color} ${
-                      backendKey === "RUNNING" ? "animate-pulse" : ""
-                    }`}
-                  />
-                  <span className="font-mono font-bold">
-                    {translatedText || "AGUARDANDO DADOS..."}
-                  </span>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Este status é controlado automaticamente pelo hardware.
-                </p>
               </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-border flex justify-end">
               <button
                 type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 bg-linear-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+                disabled={saving || isProcessActive}
+                className="flex items-center gap-2 bg-linear-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
               >
                 {saving ? (
                   "Salvando..."
@@ -327,12 +383,12 @@ export default function DeviceDetailsPage() {
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4 border-b border-border pb-2">
-              Telemetria de Rede
+              Telemetria
             </h3>
             <ul className="space-y-4">
               <li className="flex items-center justify-between group">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Wifi size={16} /> Endereço IP
+                  {connVisuals.icon} IP Local
                 </span>
                 <span className="text-xs font-mono text-foreground bg-muted px-2 py-1 rounded border border-border">
                   {device.ipAddress}
@@ -351,8 +407,13 @@ export default function DeviceDetailsPage() {
                   Último Sinal
                 </span>
                 <span className="text-xs text-foreground font-medium bg-green-500/10 dark:text-green-400 px-2 py-1 rounded">
-                  {new Date(device.lastSeen).toLocaleDateString()} |{" "}
-                  {new Date(device.lastSeen).toLocaleTimeString()}
+                  {device.lastSeen
+                    ? `${new Date(
+                        device.lastSeen,
+                      ).toLocaleDateString()} ${new Date(
+                        device.lastSeen,
+                      ).toLocaleTimeString()}`
+                    : "-"}
                 </span>
               </li>
             </ul>
@@ -364,8 +425,12 @@ export default function DeviceDetailsPage() {
             </div>
             <button
               type="button"
-              className="w-full py-2.5 text-xs font-bold text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:border-red-500/50 transition-all"
+              className="w-full py-2.5 text-xs font-bold text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:border-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleUnbind}
+              disabled={isProcessActive}
+              title={
+                isProcessActive ? "Pare o processo antes de desvincular" : ""
+              }
             >
               Desvincular Dispositivo
             </button>

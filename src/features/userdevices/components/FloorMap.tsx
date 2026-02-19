@@ -3,30 +3,87 @@
 import { APP_ROUTES } from "@/src/core/config/routes";
 import { useToast } from "@/src/core/contexts/ToastContext";
 import { deviceService } from "@/src/features/devices/service/devices.service";
-import { AvailableDevice } from "@/src/features/devices/types";
+import {
+  AvailableDevice,
+  DeviceStatus,
+  ProcessStatus,
+  ProcessStatusLabels,
+} from "@/src/features/devices/types";
 import { userDeviceService } from "@/src/features/userdevices/service/user-device.service";
 import { UserDeviceMap } from "@/src/features/userdevices/types";
 import {
+  AlertCircle,
   Cpu,
   MapPin,
   Maximize2,
   MousePointer2,
   Move,
+  RefreshCw,
   Save,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+const getDeviceVisuals = (
+  status: DeviceStatus | string,
+  process?: ProcessStatus | string,
+) => {
+  if (status === DeviceStatus.OFFLINE) {
+    return {
+      bg: "bg-red-500",
+      shadow: "shadow-red-500/40",
+      ring: "ring-red-500/30",
+      text: "text-red-600 dark:text-red-400",
+      bgText: "bg-red-500/10",
+      ping: "bg-red-500",
+    };
+  }
+
+  switch (process) {
+    case ProcessStatus.RUNNING:
+      return {
+        bg: "bg-blue-500",
+        shadow: "shadow-blue-500/40",
+        ring: "ring-blue-500/30",
+        text: "text-blue-600 dark:text-blue-400",
+        bgText: "bg-blue-500/10",
+        ping: "bg-blue-500",
+      };
+    case ProcessStatus.PAUSED:
+      return {
+        bg: "bg-amber-500",
+        shadow: "shadow-amber-500/40",
+        ring: "ring-amber-500/30",
+        text: "text-amber-600 dark:text-amber-400",
+        bgText: "bg-amber-500/10",
+        ping: "bg-amber-500",
+      };
+    case ProcessStatus.IDLE:
+    default:
+      return {
+        bg: "bg-emerald-500",
+        shadow: "shadow-emerald-500/40",
+        ring: "ring-emerald-500/30",
+        text: "text-emerald-600 dark:text-emerald-400",
+        bgText: "bg-emerald-500/10",
+        ping: "bg-emerald-500",
+      };
+  }
+};
 
 export function FloorMap() {
   const router = useRouter();
   const { showToast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
+
   const [devices, setDevices] = useState<UserDeviceMap[]>([]);
   const [availableDevices, setAvailableDevices] = useState<AvailableDevice[]>(
     [],
   );
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
@@ -34,23 +91,36 @@ export function FloorMap() {
   const [customName, setCustomName] = useState("");
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
+
+  const loadMapData = useCallback(
+    async (isSilent = false) => {
+      if (!isSilent) setInitialLoading(true);
+      else setIsRefreshing(true);
+
+      try {
+        const data = await userDeviceService.getMyMap();
+        setDevices(data);
+      } catch (error) {
+        console.error("Erro ao carregar mapa:", error);
+        if (!isSilent) showToast("Erro ao sincronizar mapa", "ERROR");
+      } finally {
+        setInitialLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [showToast],
+  );
 
   useEffect(() => {
     loadMapData();
-  }, []);
+    const intervalId = setInterval(() => {
+      loadMapData(true);
+    }, 60000);
 
-  async function loadMapData() {
-    setLoading(true);
-    try {
-      const data = await userDeviceService.getMyMap();
-      setDevices(data);
-    } catch (error) {
-      console.error("Erro ao carregar mapa:", error);
-      showToast("Erro ao sincronizar mapa", "ERROR");
-    } finally {
-      setLoading(false);
-    }
-  }
+    return () => clearInterval(intervalId);
+  }, [loadMapData]);
+
   const handlePointerDown = (e: React.PointerEvent, deviceId: number) => {
     e.preventDefault();
     e.stopPropagation();
@@ -101,11 +171,12 @@ export function FloorMap() {
       } catch (error) {
         console.error("Erro ao salvar posição", error);
         showToast("Falha ao salvar. Revertendo...", "ERROR");
-        loadMapData();
+        loadMapData(true);
       }
     }
     setIsDragging(false);
   };
+
   const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     if (draggingId !== null || isDragging) return;
     if ((e.target as HTMLElement).closest(".device-marker")) return;
@@ -118,14 +189,19 @@ export function FloorMap() {
     setCustomName("");
     setSelectedDeviceId("");
     setModalOpen(true);
+    setIsLoadingAvailable(true);
 
     try {
       const available = await deviceService.getAvailableDevices();
       setAvailableDevices(available);
     } catch (error) {
       console.error("Erro ao buscar devices disponíveis", error);
+      showToast("Erro ao buscar dispositivos", "ERROR");
+    } finally {
+      setIsLoadingAvailable(false);
     }
   };
+
   const handleSaveNewDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDeviceId || !customName) return;
@@ -141,7 +217,7 @@ export function FloorMap() {
       setDevices((prev) => [...prev, newDevice]);
       setModalOpen(false);
       showToast("Dispositivo adicionado ao mapa", "SUCCESS");
-      await loadMapData();
+      await loadMapData(true);
     } catch (error: any) {
       console.error("Erro ao vincular dispositivo:", error);
       showToast(error.message || "Erro ao adicionar", "ERROR");
@@ -149,6 +225,19 @@ export function FloorMap() {
       setSaving(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-full w-full bg-muted/10">
+        <div className="animate-pulse flex flex-col items-center gap-2">
+          <div className="h-8 w-8 border-2 border-brand-purple border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
+            Carregando Planta...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden bg-muted/10">
@@ -162,6 +251,12 @@ export function FloorMap() {
             <span className="text-xs font-bold text-foreground uppercase tracking-tight">
               Unidade Londrina • Setor A1
             </span>
+            {isRefreshing && (
+              <RefreshCw
+                size={12}
+                className="ml-2 animate-spin text-muted-foreground"
+              />
+            )}
           </div>
         </div>
 
@@ -180,11 +275,12 @@ export function FloorMap() {
           </div>
         </div>
       </div>
-      <div className="flex-1 w-full h-full overflow-auto custom-scrollbar p-8 md:p-12 lg:p-16">
+
+      <div className="flex-1 w-full h-full overflow-auto custom-scrollbar p-8 pt-24 md:p-12 md:pt-28 lg:p-16 lg:pt-32 pb-32 flex flex-col">
         <div
           ref={mapRef}
           onClick={handleMapClick}
-          className="relative min-w-250 max-w-400 w-full mx-auto shadow-2xl bg-white dark:bg-[#1a1a1a] rounded-xl overflow-hidden cursor-crosshair border border-border/50"
+          className="relative min-w-250 max-w-400 w-full mx-auto shadow-2xl bg-white dark:bg-[#1a1a1a] rounded-xl overflow-hidden cursor-crosshair border border-border/50 shrink-0"
         >
           <img
             src="/mapa.svg"
@@ -196,6 +292,16 @@ export function FloorMap() {
           <div className="absolute inset-0 w-full h-full">
             {devices.map((device) => {
               const isBeingDragged = draggingId === device.id;
+              const visuals = getDeviceVisuals(
+                device.status,
+                (device as any).process,
+              );
+              const displayStatus =
+                device.status === DeviceStatus.OFFLINE
+                  ? "OFFLINE"
+                  : ProcessStatusLabels[
+                      (device as any).process as ProcessStatus
+                    ] || "PARADO";
 
               return (
                 <div
@@ -217,11 +323,7 @@ export function FloorMap() {
                   <div className="transform -translate-x-1/2 -translate-y-1/2 relative group">
                     {!isBeingDragged && (
                       <div
-                        className={`absolute inset-0 rounded-full animate-ping opacity-40 scale-[2.0] ${
-                          device.status === "ONLINE"
-                            ? "bg-emerald-500"
-                            : "bg-red-500"
-                        }`}
+                        className={`absolute inset-0 rounded-full animate-ping opacity-40 scale-[2.0] ${visuals.ping}`}
                       />
                     )}
                     <div
@@ -230,14 +332,10 @@ export function FloorMap() {
                             flex items-center justify-center transition-transform duration-200
                             ${
                               isBeingDragged
-                                ? "scale-125 ring-4 ring-brand-purple/30"
+                                ? `scale-125 ring-4 ${visuals.ring}`
                                 : "group-hover:scale-110"
                             }
-                            ${
-                              device.status === "ONLINE"
-                                ? "bg-emerald-500 shadow-emerald-500/40"
-                                : "bg-red-500 shadow-red-500/40"
-                            }
+                            ${visuals.bg} ${visuals.shadow}
                           `}
                     >
                       {isBeingDragged && (
@@ -249,13 +347,9 @@ export function FloorMap() {
                         <div className="bg-card/95 backdrop-blur-xl border border-border p-3 rounded-xl shadow-2xl min-w-48">
                           <div className="flex justify-between items-start mb-2">
                             <span
-                              className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
-                                device.status === "ONLINE"
-                                  ? "bg-emerald-500/10 text-emerald-600"
-                                  : "bg-red-500/10 text-red-600"
-                              }`}
+                              className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${visuals.bgText} ${visuals.text}`}
                             >
-                              {device.status}
+                              {displayStatus}
                             </span>
                             <Cpu size={12} className="text-muted-foreground" />
                           </div>
@@ -289,7 +383,52 @@ export function FloorMap() {
             )}
           </div>
         </div>
+        <div className="mt-8 mx-auto w-fit flex items-center justify-center bg-background/60 backdrop-blur-md border border-border/50 p-3 md:px-6 rounded-2xl shadow-sm text-muted-foreground">
+          <div className="flex items-center gap-4 md:gap-8">
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center w-3 h-3 md:w-4 md:h-4">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-40 animate-ping"></span>
+                <span className="relative inline-flex rounded-full w-2.5 h-2.5 md:w-3 md:h-3 bg-emerald-500 border border-white dark:border-slate-800"></span>
+              </div>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">
+                Aguardando (ONLINE)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center w-3 h-3 md:w-4 md:h-4">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-40 animate-ping"></span>
+                <span className="relative inline-flex rounded-full w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-500 border border-white dark:border-slate-800"></span>
+              </div>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">
+                Produzindo
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center w-3 h-3 md:w-4 md:h-4">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-40 animate-ping"></span>
+                <span className="relative inline-flex rounded-full w-2.5 h-2.5 md:w-3 md:h-3 bg-amber-500 border border-white dark:border-slate-800"></span>
+              </div>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">
+                Pausado
+              </span>
+            </div>
+
+            <div className="w-px h-6 bg-border/50 mx-1 hidden md:block" />
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center w-3 h-3 md:w-4 md:h-4 opacity-70">
+                <span className="relative inline-flex rounded-full w-2.5 h-2.5 md:w-3 md:h-3 bg-red-500 border border-white dark:border-slate-800"></span>
+              </div>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider line-through decoration-red-500/50">
+                Offline
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
+
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-300">
           <div
@@ -325,23 +464,36 @@ export function FloorMap() {
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
                   Dispositivo Físico
                 </label>
-                <select
-                  className="w-full bg-muted/50 border border-border text-foreground text-sm rounded-xl p-4 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all appearance-none cursor-pointer"
-                  value={selectedDeviceId}
-                  onChange={(e) =>
-                    setSelectedDeviceId(
-                      e.target.value === "" ? "" : Number(e.target.value),
-                    )
-                  }
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  {availableDevices.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.macAddress} - {d.ipAddress}
-                    </option>
-                  ))}
-                </select>
+
+                {isLoadingAvailable ? (
+                  <div className="w-full bg-muted/50 border border-border text-muted-foreground text-sm rounded-xl p-4 flex items-center justify-center gap-2">
+                    <RefreshCw size={16} className="animate-spin" /> Buscando
+                    dispositivos...
+                  </div>
+                ) : availableDevices.length === 0 ? (
+                  <div className="w-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium rounded-xl p-4 flex items-center gap-2">
+                    <AlertCircle size={18} />
+                    Nenhum dispositivo disponível
+                  </div>
+                ) : (
+                  <select
+                    className="w-full bg-muted/50 border border-border text-foreground text-sm rounded-xl p-4 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all appearance-none cursor-pointer"
+                    value={selectedDeviceId}
+                    onChange={(e) =>
+                      setSelectedDeviceId(
+                        e.target.value === "" ? "" : Number(e.target.value),
+                      )
+                    }
+                    required
+                  >
+                    <option value="">Selecione...</option>
+                    {availableDevices.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.macAddress} - {d.ipAddress}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -351,17 +503,20 @@ export function FloorMap() {
                 <input
                   type="text"
                   placeholder="Ex: Sensor Entrada A"
-                  className="w-full bg-muted/50 border border-border text-foreground text-sm rounded-xl p-4 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all"
+                  className="w-full bg-muted/50 border border-border text-foreground text-sm rounded-xl p-4 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple outline-none transition-all disabled:opacity-50"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   required
+                  disabled={availableDevices.length === 0}
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={saving || !selectedDeviceId}
-                className="w-full bg-linear-to-r from-brand-purple to-brand-blue text-white font-bold rounded-xl py-4 shadow-xl shadow-brand-purple/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                disabled={
+                  saving || !selectedDeviceId || availableDevices.length === 0
+                }
+                className="w-full bg-linear-to-r from-brand-purple to-brand-blue text-white font-bold rounded-xl py-4 shadow-xl shadow-brand-purple/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {saving ? (
                   "SALVANDO..."

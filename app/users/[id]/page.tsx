@@ -30,16 +30,19 @@ import { Pagination } from "@/src/core/components/data-display/Pagination";
 import { PageHeader } from "@/src/core/components/layouts/PageHeader";
 import { useToast } from "@/src/core/contexts/ToastContext";
 import { authService } from "@/src/features/auth/service/auth-service";
-import {
-  DeviceStatus,
-  ProcessStageLabels,
-  ProcessStatus,
-} from "@/src/features/devices/types";
+import { DeviceStatus, ProcessStageLabels } from "@/src/features/devices/types";
 import { userDeviceService } from "@/src/features/userdevices/service/user-device.service";
 import { UserDeviceDetails } from "@/src/features/userdevices/types";
 import { ChangePasswordModal } from "@/src/features/users/components/ChangePasswordModal";
 import { userService } from "@/src/features/users/services/user.service";
 import { roleDisplayMap, User } from "@/src/features/users/types/user";
+
+const PROCESS_TRANSLATIONS: Record<string, string> = {
+  RUNNING: "PRODUZINDO",
+  PAUSED: "PAUSADO",
+  IDLE: "AGUARDANDO",
+  OFFLINE: "OFFLINE",
+};
 
 export default function UserDetailsPage() {
   const router = useRouter();
@@ -54,6 +57,7 @@ export default function UserDetailsPage() {
   const [visibleDevices, setVisibleDevices] = useState<UserDeviceDetails[]>([]);
   const [page, setPage] = useState(0);
   const pageSize = 5;
+
   useEffect(() => {
     const logged = authService.getUser();
 
@@ -75,6 +79,7 @@ export default function UserDetailsPage() {
       fetchData();
     }
   }, [userId]);
+
   useEffect(() => {
     const startIndex = page * pageSize;
     const endIndex = startIndex + pageSize;
@@ -109,6 +114,7 @@ export default function UserDetailsPage() {
       setLoading(false);
     }
   };
+
   const handleDeleteUser = async () => {
     if (
       confirm(
@@ -141,6 +147,7 @@ export default function UserDetailsPage() {
       }
     }
   };
+
   const isOwner = currentUser?.id === userId;
   const isAdmin =
     currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
@@ -163,31 +170,31 @@ export default function UserDetailsPage() {
 
         if (item.status === DeviceStatus.OFFLINE) {
           colorClass =
-            "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:border-red-800";
+            "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400";
           icon = <WifiOff size={14} />;
-          label = "OFFLINE";
+          label = PROCESS_TRANSLATIONS["OFFLINE"];
         } else {
           switch (item.process as string) {
             case "RUNNING":
               colorClass =
-                "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800";
-              icon = <PlayCircle size={14} />;
-              label = ProcessStatus.RUNNING;
+                "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400";
+              icon = <PlayCircle size={14} className="animate-pulse" />;
+              label = PROCESS_TRANSLATIONS["RUNNING"];
               break;
 
             case "PAUSED":
               colorClass =
-                "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800";
+                "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400";
               icon = <PauseCircle size={14} />;
-              label = ProcessStatus.PAUSED;
+              label = PROCESS_TRANSLATIONS["PAUSED"];
               break;
 
             case "IDLE":
             default:
               colorClass =
-                "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800";
+                "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400";
               icon = <StopCircle size={14} />;
-              label = ProcessStatus.IDLE;
+              label = PROCESS_TRANSLATIONS["IDLE"];
               break;
           }
         }

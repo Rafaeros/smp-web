@@ -21,10 +21,18 @@ export enum DeviceStatus {
   OFFLINE = "OFFLINE",
 }
 export enum ProcessStatus {
-  IDLE = "PARADO",
-  RUNNING = "PRODUZINDO",
-  PAUSED = "PAUSADO",
+  IDLE = "IDLE",
+  RUNNING = "RUNNING",
+  PAUSED = "PAUSED",
 }
+
+export const ProcessStatusLabels: Record<ProcessStatus, string> = {
+  [ProcessStatus.IDLE]: "AGUARDANDO",
+  [ProcessStatus.RUNNING]: "PRODUZINDO",
+  [ProcessStatus.PAUSED]: "PAUSADO",
+};
+
+
 export interface AvailableDevice {
   id: number;
   macAddress: string;

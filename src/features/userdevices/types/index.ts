@@ -18,6 +18,7 @@ export interface UserDeviceMap {
   x: number;
   y: number;
   status: DeviceStatus;
+  process: ProcessStatus;
 }
 
 export interface UserDeviceDetails {
