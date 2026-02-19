@@ -33,6 +33,10 @@ export default function ProductList() {
   const [totalItems, setTotalItems] = useState(0);
   const [activeFilters, setActiveFilters] = useState<ProductFilters>({});
   const [sort, setSort] = useState<SortState | undefined>(undefined);
+  
+  // Controle de loading para o Export
+  const [isExporting, setIsExporting] = useState(false);
+
   const [formModal, setFormModal] = useState<{
     isOpen: boolean;
     product: Product | null;
@@ -40,6 +44,7 @@ export default function ProductList() {
     isOpen: false,
     product: null,
   });
+  
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     productId: number | null;
@@ -97,6 +102,22 @@ export default function ProductList() {
     }
   };
 
+  // --- NOVA FUNÇÃO DE EXPORTAÇÃO ---
+  const handleExport = async () => {
+    setIsExporting(true);
+    showToast("Gerando arquivo...", "SUCCESS"); // Avisa o usuário que começou
+    
+    try {
+      await productService.exportToCsv();
+      showToast("Download concluído com sucesso!", "SUCCESS");
+    } catch (error) {
+      console.error(error);
+      showToast("Erro ao exportar o relatório.", "ERROR");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const columns: ColumnDef<Product>[] = [
     {
       header: "ID",
@@ -135,18 +156,21 @@ export default function ProductList() {
           <button
             onClick={() => router.push(`/products/${item.id}`)}
             className="p-1.5 text-muted-foreground hover:text-brand-blue hover:bg-blue-50 rounded-md transition-colors"
+            title="Ver Detalhes"
           >
             <Eye size={16} />
           </button>
           <button
             onClick={() => setFormModal({ isOpen: true, product: item })}
             className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+            title="Editar Produto"
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => setDeleteModal({ isOpen: true, productId: item.id })}
             className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Excluir Produto"
           >
             <Trash2 size={16} />
           </button>
@@ -157,11 +181,14 @@ export default function ProductList() {
 
   return (
     <div className="w-full p-4 md:p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
+      
+      {/* HEADER AGORA COM A PROP onExport PASSADA */}
       <PageHeader
         title="Catálogo de Produtos"
         subtitle="Gerenciamento de produtos e SKUs"
         icon={Package}
         onNew={() => setFormModal({ isOpen: true, product: null })}
+        onExport={handleExport} // <--- AQUI!
         filterComponent={
           <ProductListFilters
             onFilter={setActiveFilters}
@@ -171,6 +198,7 @@ export default function ProductList() {
           />
         }
       />
+      
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 bg-muted/30 flex justify-between items-center border-b border-border">
           <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">

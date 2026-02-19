@@ -25,7 +25,7 @@ import { Log } from "../types/logs";
 export default function LogList() {
   const router = useRouter();
   const { showToast } = useToast();
-
+  const [isExporting, setIsExporting] = useState(false);
   const [logs, setLogs] = useState<Log[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,20 @@ export default function LogList() {
       showToast("Erro ao carregar logs", "ERROR");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    showToast("Gerando arquivo de logs...", "SUCCESS");
+    try {
+      await logService.exportToCsv();
+      showToast("Download dos logs concluído!", "SUCCESS");
+    } catch (error) {
+      console.error(error);
+      showToast("Erro ao exportar os logs.", "ERROR");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -196,9 +210,7 @@ export default function LogList() {
           title="Histórico de Logs"
           subtitle="Registros detalhados de produção"
           icon={History}
-          onExport={() => showToast("Exportando CSV...", "INFO")}
-          // Adicione LogFilters aqui se tiver criado o componente de filtro
-          // filterComponent={<LogListFilters ... />}
+          onExport={handleExport}
         />
       </div>
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">

@@ -67,7 +67,7 @@ const formatDateToBR = (date: Date) => {
 export function OrderList() {
   const router = useRouter();
   const { showToast } = useToast();
-
+  const [isExporting, setIsExporting] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -87,9 +87,23 @@ export function OrderList() {
       setTotalItems(data.page.totalElements);
     } catch (error) {
       console.error(error);
-      showToast("Erro ao carregar ordens", "ERROR");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    showToast("Gerando arquivo de OPs...", "SUCCESS");
+    
+    try {
+      await orderService.exportToCsv();
+      showToast("Download concluído com sucesso!", "SUCCESS");
+    } catch (error) {
+      console.error(error);
+      showToast("Erro ao exportar o relatório.", "ERROR");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -289,7 +303,7 @@ export function OrderList() {
           subtitle="Controle de OPs e acompanhamento de fábrica"
           icon={Factory}
           onNew={() => router.push("/orders/new")}
-          onExport={() => showToast("Exportando dados...", "INFO")}
+          onExport={handleExport}
           onSync={handleSync}
           isSyncing={isSyncing}
           filterComponent={

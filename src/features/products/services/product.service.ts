@@ -64,4 +64,21 @@ export const productService = {
   delete: async (id: number): Promise<any> => {
     await api.delete(`/products/${id}`);
   },
+
+exportToCsv: async (): Promise<void> => {
+    const response = await api.get('/products/export', {
+      responseType: 'blob',
+    });
+    const fileData = response.data !== undefined ? response.data : response;
+    const url = window.URL.createObjectURL(new Blob([fileData], { type: 'text/csv;charset=utf-8;' }));
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'relatorio_produtos.csv'); 
+    
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
 };
