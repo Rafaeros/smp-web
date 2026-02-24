@@ -140,7 +140,11 @@ export default function DeviceDetailsPage() {
       }));
 
       const backendCode = (data as any).code || data.code;
-      if (backendCode) {
+      const productCode = data.productCode;
+
+      if (backendCode && productCode) {
+        setInitialOrderCode(`${backendCode} - ${productCode}`);
+      } else if (backendCode) {
         setInitialOrderCode(backendCode);
       }
     } catch (error) {

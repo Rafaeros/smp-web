@@ -30,6 +30,7 @@ export interface UserDeviceDetails {
   process: ProcessStatus;
   stage?: ProcessStage;
   code?: string;
+  productCode?: string;
   orderId?: number;
   lastSeen: string;
   coordinateX: number;

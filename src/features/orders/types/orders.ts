@@ -9,6 +9,7 @@ export enum OrderStatus {
 export interface OrderSummary {
   id: number;
   code: string;
+  productCode: string;
 }
 
 export interface UpdateOrder {

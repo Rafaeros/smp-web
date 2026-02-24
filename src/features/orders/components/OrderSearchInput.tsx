@@ -15,7 +15,8 @@ export function OrderSearchInput({
     const response = await orderService.getSummary(query);
     return response.content;
   };
-const syncOrder = async (query: string) => {
+
+  const syncOrder = async (query: string) => {
     await orderService.syncFromErp({ code: query });
   };
 
@@ -25,12 +26,12 @@ const syncOrder = async (query: string) => {
       onSelect={onOrderSelect}
       placeholder="DIGITE O CÓDIGO DA OP..."
       initialDisplayValue={initialDisplayValue}
-      getItemLabel={(order) => order.code}
+      getItemLabel={(order) => `${order.code} - ${order.productCode}`}
       getItemKey={(order) => order.id}
       renderItem={(order) => (
         <div className="flex flex-col">
           <span className="font-semibold text-gray-800 text-sm font-mono">
-            {order.code}
+            {order.code} - {order.productCode}
           </span>
           <span className="text-[10px] text-gray-400">ID: {order.id}</span>
         </div>
